@@ -88,7 +88,7 @@ namespace Microsoft.ML.Probabilistic.Compiler
         /// Controls if source code files are written to disk.  If true, source code files will be 
         /// written out to the GeneratedSourceFolder.
         /// </summary>
-        public bool WriteSourceFiles { get; set; } = true;
+        public bool WriteSourceFiles => true;
 
         /// <summary>
         /// If true and WriteSourceFiles=true, existing source code files will be used instead of re-generated.  
@@ -829,7 +829,7 @@ namespace Microsoft.ML.Probabilistic.Compiler
         {
             CodeCompiler cc = new CodeCompiler();
             cc.GeneratedSourceFolder = GeneratedSourceFolder;
-            cc.writeSourceFiles = WriteSourceFiles;
+            //cc.writeSourceFiles = WriteSourceFiles;
             cc.useExistingFiles = UseExistingSourceFiles;
             cc.generateInMemory = GenerateInMemory;
             cc.includeDebugInformation = IncludeDebugInformation;
@@ -1012,7 +1012,7 @@ namespace Microsoft.ML.Probabilistic.Compiler
             CompilerChoice = compiler.CompilerChoice;
             ShowSchedule = compiler.ShowSchedule;
             BrowserMode = compiler.BrowserMode;
-            WriteSourceFiles = compiler.WriteSourceFiles;
+            //WriteSourceFiles = compiler.WriteSourceFiles;
             GenerateInMemory = compiler.GenerateInMemory;
             GeneratedSourceFolder = compiler.GeneratedSourceFolder;
             UseParallelForLoops = compiler.UseParallelForLoops;
