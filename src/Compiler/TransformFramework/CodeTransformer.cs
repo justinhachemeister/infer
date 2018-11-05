@@ -110,7 +110,7 @@ namespace Microsoft.ML.Probabilistic.Compiler
         /// <summary>
         /// If true, source code files are written out for each transformed class.
         /// </summary>
-        public bool writeSourceFiles = true;
+        private bool writeSourceFiles => true;
 
         /// <summary>
         /// If true, existing source code files are used.
@@ -177,22 +177,22 @@ namespace Microsoft.ML.Probabilistic.Compiler
                 {
                     string filename = Path.GetFullPath(GetFilenameForType(GeneratedSourceFolder, td, ".cs"));
                     filenames.Add(filename);
-                    if (writeSourceFiles)
-                    {
-                        if (useExistingFiles && File.Exists(filename))
+                    //if (writeSourceFiles)
+                    //{
+                    if (useExistingFiles && File.Exists(filename))
                         {
                             if (showProgress)
                                 Console.Write("Using existing source file: {0} ", filename);
                         }
                         else
                         {
-                            if (showProgress)
+                            //if (showProgress)
                                 Console.Write("Writing source file: {0} ", filename);
                             StreamWriter stw = new StreamWriter(filename);
                             stw.Write(sourceCode);
                             stw.Close();
                         }
-                    }
+                    //}
                 }
             }
             // sometimes we need to reference assemblies that are not directly referenced in the code,
