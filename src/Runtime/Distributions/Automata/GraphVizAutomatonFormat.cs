@@ -24,13 +24,14 @@ namespace Microsoft.ML.Probabilistic.Distributions.Automata
         /// <typeparam name="TAutomaton">The concrete type of <paramref name="automaton"/>.</typeparam>
         /// <param name="automaton">The automaton to convert to a string.</param>
         /// <returns>The string representation of <paramref name="automaton"/>.</returns>
-        public string ConvertToString<TSequence, TElement, TElementDistribution, TSequenceManipulator, TAutomaton>(
-            Automaton<TSequence, TElement, TElementDistribution, TSequenceManipulator, TAutomaton> automaton)
+        public string ConvertToString<TSequence, TElement, TElementDistribution, TSequenceManipulator, TElementDistributionManipulator, TAutomaton>(
+            Automaton<TSequence, TElement, TElementDistribution, TSequenceManipulator, TElementDistributionManipulator, TAutomaton> automaton)
             where TSequence : class, IEnumerable<TElement>
-            where TElementDistribution : class, IDistribution<TElement>, SettableToProduct<TElementDistribution>, SettableToWeightedSumExact<TElementDistribution>, CanGetLogAverageOf<TElementDistribution>,
+            where TElementDistribution : IDistribution<TElement>, SettableToProduct<TElementDistribution>, SettableToWeightedSumExact<TElementDistribution>, CanGetLogAverageOf<TElementDistribution>,
                 SettableToPartialUniform<TElementDistribution>, new()
             where TSequenceManipulator : ISequenceManipulator<TSequence, TElement>, new()
-            where TAutomaton : Automaton<TSequence, TElement, TElementDistribution, TSequenceManipulator, TAutomaton>, new()
+            where TElementDistributionManipulator : IDistributionManipulator<TElement, TElementDistribution>, new()
+            where TAutomaton : Automaton<TSequence, TElement, TElementDistribution, TSequenceManipulator, TElementDistributionManipulator, TAutomaton>, new()
         {
             var graphVizCode = new StringBuilder();
 
@@ -45,6 +46,8 @@ namespace Microsoft.ML.Probabilistic.Distributions.Automata
                 graphVizCode.AppendLine();
             }
 
+            var manipulator = new TElementDistributionManipulator();
+
             // Specify transitions
             foreach (var state in automaton.States)
             {
@@ -53,7 +56,7 @@ namespace Microsoft.ML.Probabilistic.Distributions.Automata
                     var transition = state.GetTransition(i);
                     
                     string transitionLabel;
-                    if (transition.ElementDistribution == null)
+                    if (manipulator.IsNull(transition.ElementDistribution))
                     {
                         transitionLabel = "eps";
                     }

@@ -20,18 +20,20 @@ namespace Microsoft.ML.Probabilistic.Distributions.Automata
     /// <typeparam name="TElement2">The type of a second element of a pair.</typeparam>
     /// <typeparam name="TElementDistribution2">The type of a distribution over <typeparamref name="TElement2"/>.</typeparam>
     [Quality(QualityBand.Experimental)]
-    public class PairDistribution<TElement1, TElementDistribution1, TElement2, TElementDistribution2> :
-        PairDistributionBase<TElement1, TElementDistribution1, TElement2, TElementDistribution2, PairDistribution<TElement1, TElementDistribution1, TElement2, TElementDistribution2>>
-        where TElementDistribution1 : class, IDistribution<TElement1>, CanGetLogAverageOf<TElementDistribution1>, SettableToProduct<TElementDistribution1>, SettableToPartialUniform<TElementDistribution1>, new()
-        where TElementDistribution2 : class, IDistribution<TElement2>, CanGetLogAverageOf<TElementDistribution2>, SettableToProduct<TElementDistribution2>, SettableToPartialUniform<TElementDistribution2>, new()
+    public class PairDistribution<TElement1, TElementDistribution1, TElementDistributionManipulator1, TElement2, TElementDistribution2, TElementDistributionManipulator2> :
+        PairDistributionBase<TElement1, TElementDistribution1, TElementDistributionManipulator1, TElement2, TElementDistribution2, TElementDistributionManipulator2, PairDistribution<TElement1, TElementDistribution1, TElementDistributionManipulator1, TElement2, TElementDistribution2, TElementDistributionManipulator2>>
+        where TElementDistribution1 : IDistribution<TElement1>, CanGetLogAverageOf<TElementDistribution1>, SettableToProduct<TElementDistribution1>, SettableToPartialUniform<TElementDistribution1>, new()
+        where TElementDistribution2 : IDistribution<TElement2>, CanGetLogAverageOf<TElementDistribution2>, SettableToProduct<TElementDistribution2>, SettableToPartialUniform<TElementDistribution2>, new()
+        where TElementDistributionManipulator1 : IDistributionManipulator<TElement1, TElementDistribution1>, new()
+        where TElementDistributionManipulator2 : IDistributionManipulator<TElement2, TElementDistribution2>, new()
     {
         /// <summary>
         /// Creates a distribution <c>Q(y, x) = P(x, y)</c>, where <c>P(x, y)</c> is the current distribution.
         /// </summary>
         /// <returns>The created distribution.</returns>
-        public PairDistribution<TElement2, TElementDistribution2, TElement1, TElementDistribution1> Transpose()
+        public PairDistribution<TElement2, TElementDistribution2, TElementDistributionManipulator2, TElement1, TElementDistribution1, TElementDistributionManipulator1> Transpose()
         {
-            return PairDistribution<TElement2, TElementDistribution2, TElement1, TElementDistribution1>.FromFirstSecond(this.Second, this.First);
+            return PairDistribution<TElement2, TElementDistribution2, TElementDistributionManipulator2, TElement1, TElementDistribution1, TElementDistributionManipulator1>.FromFirstSecond(this.Second, this.First);
         }
     }
 
@@ -41,9 +43,10 @@ namespace Microsoft.ML.Probabilistic.Distributions.Automata
     /// </summary>
     /// <typeparam name="TElement">The type of a pair element.</typeparam>
     /// <typeparam name="TElementDistribution">The type of a distribution over <typeparamref name="TElement"/>.</typeparam>
-    public class PairDistribution<TElement, TElementDistribution> :
-        PairDistributionBase<TElement, TElementDistribution, TElement, TElementDistribution, PairDistribution<TElement, TElementDistribution>>
-        where TElementDistribution : class, IDistribution<TElement>, CanGetLogAverageOf<TElementDistribution>, SettableToProduct<TElementDistribution>, SettableToPartialUniform<TElementDistribution>, new()
+    public class PairDistribution<TElement, TElementDistribution, TElementDistributionManipulator> :
+        PairDistributionBase<TElement, TElementDistribution, TElementDistributionManipulator, TElement, TElementDistribution, TElementDistributionManipulator, PairDistribution<TElement, TElementDistribution, TElementDistributionManipulator>>
+        where TElementDistribution : IDistribution<TElement>, CanGetLogAverageOf<TElementDistribution>, SettableToProduct<TElementDistribution>, SettableToPartialUniform<TElementDistribution>, new()
+        where TElementDistributionManipulator : IDistributionManipulator<TElement, TElementDistribution>, new()
     {
         /// <summary>
         /// Stores the product of distributions over the first and the the second element
@@ -61,10 +64,7 @@ namespace Microsoft.ML.Probabilistic.Distributions.Automata
         /// </summary>
         public override Pair<TElement, TElement> Point
         {
-            get
-            {   
-                return base.Point;
-            }
+            get => base.Point;
 
             set
             {
@@ -79,13 +79,13 @@ namespace Microsoft.ML.Probabilistic.Distributions.Automata
         /// <param name="firstElementDistribution">The marginal distribution of the first element of a pair.</param>
         /// <param name="secondElementDistribution">The marginal distribution of the second element of a pair.</param>
         /// <returns>The created distribution.</returns>
-        public static PairDistribution<TElement, TElementDistribution> Constrained(
+        public static PairDistribution<TElement, TElementDistribution, TElementDistributionManipulator> Constrained(
             TElementDistribution firstElementDistribution, TElementDistribution secondElementDistribution)
         {
-            Argument.CheckIfNotNull(firstElementDistribution, "firstElementDistribution");
-            Argument.CheckIfNotNull(secondElementDistribution, "secondElementDistribution");
+            Argument.CheckIfValid(!ElementDistributionManipulator1.IsNull(firstElementDistribution), nameof(firstElementDistribution));
+            Argument.CheckIfValid(!ElementDistributionManipulator2.IsNull(secondElementDistribution), nameof(secondElementDistribution));
             
-            var result = new PairDistribution<TElement, TElementDistribution>
+            var result = new PairDistribution<TElement, TElementDistribution, TElementDistributionManipulator>
             {
                 First = firstElementDistribution,
                 Second = secondElementDistribution,
@@ -103,7 +103,7 @@ namespace Microsoft.ML.Probabilistic.Distributions.Automata
         /// </summary>
         /// <param name="elementDistribution">The marginal distribution over pair elements.</param>
         /// <returns>The created distribution.</returns>
-        public static PairDistribution<TElement, TElementDistribution> Constrained(TElementDistribution elementDistribution)
+        public static PairDistribution<TElement, TElementDistribution, TElementDistributionManipulator> Constrained(TElementDistribution elementDistribution)
         {
             return Constrained(elementDistribution, elementDistribution);
         }
@@ -112,7 +112,7 @@ namespace Microsoft.ML.Probabilistic.Distributions.Automata
         /// Creates a distribution <c>P(x, y) \propto I[x=y]</c>.
         /// </summary>
         /// <returns>The created distribution.</returns>
-        public static PairDistribution<TElement, TElementDistribution> UniformConstrained()
+        public static PairDistribution<TElement, TElementDistribution, TElementDistributionManipulator> UniformConstrained()
         {
             return Constrained(Distribution.CreateUniform<TElementDistribution>());
         }
@@ -156,7 +156,7 @@ namespace Microsoft.ML.Probabilistic.Distributions.Automata
         /// <returns>The logarithm of the scale for the projection result.</returns>
         public override double ProjectFirst(TElementDistribution first, out TElementDistribution result)
         {
-            Argument.CheckIfNotNull(first, "first");
+            Argument.CheckIfValid(!ElementDistributionManipulator1.IsNull(first), nameof(first));
 
             if (first.IsPointMass)
             {
@@ -211,9 +211,11 @@ namespace Microsoft.ML.Probabilistic.Distributions.Automata
         /// <returns>The created copy.</returns>
         public override object Clone()
         {
-            var result = (PairDistribution<TElement, TElementDistribution>)base.Clone();
+            var result = (PairDistribution<TElement, TElementDistribution, TElementDistributionManipulator>)base.Clone();
             result.HasEqualityConstraint = this.HasEqualityConstraint;
-            result.firstTimesSecond = this.firstTimesSecond == null ? null : (TElementDistribution)this.firstTimesSecond.Clone();
+            result.firstTimesSecond = ElementDistributionManipulator1.IsNull(firstTimesSecond)
+                ? ElementDistributionManipulator1.CreateNullElementDistribution()
+                : (TElementDistribution)this.firstTimesSecond.Clone();
             return result;
         }
 
@@ -239,7 +241,7 @@ namespace Microsoft.ML.Probabilistic.Distributions.Automata
         /// </summary>
         /// <param name="that">The given distribution.</param>
         /// <returns>The logarithm of the probability that distributions would draw the same sample.</returns>
-        public override double GetLogAverageOf(PairDistribution<TElement, TElementDistribution> that)
+        public override double GetLogAverageOf(PairDistribution<TElement, TElementDistribution, TElementDistributionManipulator> that)
         {
             Argument.CheckIfNotNull(that, "that");
             
@@ -266,7 +268,7 @@ namespace Microsoft.ML.Probabilistic.Distributions.Automata
         /// Sets the distribution to be uniform over the support of a given distribution.
         /// </summary>
         /// <param name="distribution">The distribution which support will be used to setup the current distribution.</param>
-        public override void SetToPartialUniformOf(PairDistribution<TElement, TElementDistribution> distribution)
+        public override void SetToPartialUniformOf(PairDistribution<TElement, TElementDistribution, TElementDistributionManipulator> distribution)
         {
             base.SetToPartialUniformOf(distribution);
             
@@ -286,9 +288,9 @@ namespace Microsoft.ML.Probabilistic.Distributions.Automata
         /// Creates a distribution <c>Q(y, x) = P(x, y)</c>, where <c>P(x, y)</c> is the current distribution.
         /// </summary>
         /// <returns>The created distribution.</returns>
-        public PairDistribution<TElement, TElementDistribution> Transpose()
+        public PairDistribution<TElement, TElementDistribution, TElementDistributionManipulator> Transpose()
         {
-            return new PairDistribution<TElement, TElementDistribution>
+            return new PairDistribution<TElement, TElementDistribution, TElementDistributionManipulator>
             {
                 First = this.Second,
                 Second = this.First,

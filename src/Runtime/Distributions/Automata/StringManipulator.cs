@@ -19,20 +19,14 @@ namespace Microsoft.ML.Probabilistic.Distributions.Automata
         /// </summary>
         /// <param name="elements">The sequence of characters.</param>
         /// <returns>The string.</returns>
-        public string ToSequence(IEnumerable<char> elements)
-        {
-            return new string(elements.ToArray());
-        }
+        public string ToSequence(IEnumerable<char> elements) => new string(elements.ToArray());
 
         /// <summary>
         /// Gets the length of a given string.
         /// </summary>
         /// <param name="sequence">The string.</param>
         /// <returns>The length of the string.</returns>
-        public int GetLength(string sequence)
-        {
-            return sequence.Length;
-        }
+        public int GetLength(string sequence) => sequence.Length;
 
         /// <summary>
         /// Gets the character at a given position in a given string.
@@ -40,10 +34,7 @@ namespace Microsoft.ML.Probabilistic.Distributions.Automata
         /// <param name="sequence">The string.</param>
         /// <param name="index">The position.</param>
         /// <returns>The character at the given position in the string.</returns>
-        public char GetElement(string sequence, int index)
-        {
-            return sequence[index];
-        }
+        public char GetElement(string sequence, int index) => sequence[index];
 
         /// <summary>
         /// Checks if given strings are equal.
@@ -51,10 +42,7 @@ namespace Microsoft.ML.Probabilistic.Distributions.Automata
         /// <param name="sequence1">The first string.</param>
         /// <param name="sequence2">The second string.</param>
         /// <returns><see langword="true"/> if the strings are equal, <see langword="false"/> otherwise.</returns>
-        public bool SequencesAreEqual(string sequence1, string sequence2)
-        {
-            return object.Equals(sequence1, sequence2);
-        }
+        public bool SequencesAreEqual(string sequence1, string sequence2) => object.Equals(sequence1, sequence2);
 
         /// <summary>
         /// Creates a string by copying the first string and then appending the second string to it.
@@ -62,9 +50,6 @@ namespace Microsoft.ML.Probabilistic.Distributions.Automata
         /// <param name="sequence1">The first string.</param>
         /// <param name="sequence2">The second string.</param>
         /// <returns>The created string.</returns>
-        public string Concat(string sequence1, string sequence2)
-        {
-            return sequence1 + sequence2;
-        }
+        public string Concat(string sequence1, string sequence2) => sequence1 + sequence2;
     }
 }

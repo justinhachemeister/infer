@@ -63,14 +63,15 @@ namespace Microsoft.ML.Probabilistic.Distributions.Automata
         /// Defaults to <see langword="true"/>.
         /// </param>
         /// <returns>The built regular expression tree.</returns>
-        public static RegexpTreeNode<TElement> BuildRegexp<TSequence, TElement, TElementDistribution, TSequenceManipulator, TAutomaton>(
-            Automaton<TSequence, TElement, TElementDistribution, TSequenceManipulator, TAutomaton> automaton,
+        public static RegexpTreeNode<TElement> BuildRegexp<TSequence, TElement, TElementDistribution, TSequenceManipulator, TElementDistributionManipulator, TAutomaton>(
+            Automaton<TSequence, TElement, TElementDistribution, TSequenceManipulator, TElementDistributionManipulator, TAutomaton> automaton,
             bool collapseAlternatives = true)
             where TSequence : class, IEnumerable<TElement>
-            where TElementDistribution : class, IDistribution<TElement>, SettableToProduct<TElementDistribution>, SettableToWeightedSumExact<TElementDistribution>, CanGetLogAverageOf<TElementDistribution>,
+            where TElementDistribution : IDistribution<TElement>, SettableToProduct<TElementDistribution>, SettableToWeightedSumExact<TElementDistribution>, CanGetLogAverageOf<TElementDistribution>,
                 SettableToPartialUniform<TElementDistribution>, new()
             where TSequenceManipulator : ISequenceManipulator<TSequence, TElement>, new()
-            where TAutomaton : Automaton<TSequence, TElement, TElementDistribution, TSequenceManipulator, TAutomaton>, new()
+            where TElementDistributionManipulator : IDistributionManipulator<TElement, TElementDistribution>, new()
+            where TAutomaton : Automaton<TSequence, TElement, TElementDistribution, TSequenceManipulator, TElementDistributionManipulator, TAutomaton>, new()
         {
             bool buildCompactRegex = true;
 
@@ -142,14 +143,15 @@ namespace Microsoft.ML.Probabilistic.Distributions.Automata
         /// Defaults to <see langword="true"/>.
         /// </param>
         /// <returns>The built regular expression tree.</returns>
-        public static RegexpTreeNode<TElement> BuildCompactRegex<TSequence, TElement, TElementDistribution, TSequenceManipulator, TAutomaton>(
-            Automaton<TSequence, TElement, TElementDistribution, TSequenceManipulator, TAutomaton> automaton,
+        public static RegexpTreeNode<TElement> BuildCompactRegex<TSequence, TElement, TElementDistribution, TSequenceManipulator, TElementDistributionManipulator, TAutomaton>(
+            Automaton<TSequence, TElement, TElementDistribution, TSequenceManipulator, TElementDistributionManipulator, TAutomaton> automaton,
             bool collapseAlternatives = true)
             where TSequence : class, IEnumerable<TElement>
-            where TElementDistribution : class, IDistribution<TElement>, SettableToProduct<TElementDistribution>, SettableToWeightedSumExact<TElementDistribution>, CanGetLogAverageOf<TElementDistribution>,
+            where TElementDistribution : IDistribution<TElement>, SettableToProduct<TElementDistribution>, SettableToWeightedSumExact<TElementDistribution>, CanGetLogAverageOf<TElementDistribution>,
                 SettableToPartialUniform<TElementDistribution>, new()
             where TSequenceManipulator : ISequenceManipulator<TSequence, TElement>, new()
-            where TAutomaton : Automaton<TSequence, TElement, TElementDistribution, TSequenceManipulator, TAutomaton>, new()
+            where TElementDistributionManipulator : IDistributionManipulator<TElement, TElementDistribution>, new()
+            where TAutomaton : Automaton<TSequence, TElement, TElementDistribution, TSequenceManipulator, TElementDistributionManipulator, TAutomaton>, new()
         {
             const int EndNodeIndex = 0;
             List<int> sizeOneList = new List<int>() { 0 };
@@ -363,13 +365,14 @@ namespace Microsoft.ML.Probabilistic.Distributions.Automata
         /// <typeparam name="TAutomaton">The concrete type of an automaton.</typeparam>
         /// <param name="component">The strongly connected component to compute the regular expressions for.</param>
         /// <returns>A table containing the computed regular expressions.</returns>
-        private static RegexpTreeNode<TElement>[,] BuildStronglyConnectedComponentRegexp<TSequence, TElement, TElementDistribution, TSequenceManipulator, TAutomaton>(
-            Automaton<TSequence, TElement, TElementDistribution, TSequenceManipulator, TAutomaton>.StronglyConnectedComponent component)
+        private static RegexpTreeNode<TElement>[,] BuildStronglyConnectedComponentRegexp<TSequence, TElement, TElementDistribution, TSequenceManipulator, TElementDistributionManipulator, TAutomaton>(
+            Automaton<TSequence, TElement, TElementDistribution, TSequenceManipulator, TElementDistributionManipulator, TAutomaton>.StronglyConnectedComponent component)
             where TSequence : class, IEnumerable<TElement>
-            where TElementDistribution : class, IDistribution<TElement>, SettableToProduct<TElementDistribution>, SettableToWeightedSumExact<TElementDistribution>, CanGetLogAverageOf<TElementDistribution>,
+            where TElementDistribution : IDistribution<TElement>, SettableToProduct<TElementDistribution>, SettableToWeightedSumExact<TElementDistribution>, CanGetLogAverageOf<TElementDistribution>,
                 SettableToPartialUniform<TElementDistribution>, new()
             where TSequenceManipulator : ISequenceManipulator<TSequence, TElement>, new()
-            where TAutomaton : Automaton<TSequence, TElement, TElementDistribution, TSequenceManipulator, TAutomaton>, new()
+            where TElementDistributionManipulator : IDistributionManipulator<TElement, TElementDistribution>, new()
+            where TAutomaton : Automaton<TSequence, TElement, TElementDistribution, TSequenceManipulator, TElementDistributionManipulator, TAutomaton>, new()
         {
             var regexps = Util.ArrayInit(component.Size, component.Size, (i, j) => RegexpTreeNode<TElement>.Nothing());
             for (int stateIndex = 0; stateIndex < component.Size; ++stateIndex)

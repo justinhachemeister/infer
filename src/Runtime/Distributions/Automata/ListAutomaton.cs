@@ -17,11 +17,12 @@ namespace Microsoft.ML.Probabilistic.Distributions.Automata
     /// <typeparam name="TElement">The type of a list element.</typeparam>
     /// <typeparam name="TElementDistribution">The type of a distribution over a list element.</typeparam>
     /// <typeparam name="TThis">The type of a concrete list automaton class.</typeparam>
-    public abstract class ListAutomaton<TList, TElement, TElementDistribution, TThis>
-        : Automaton<TList, TElement, TElementDistribution, ListManipulator<TList, TElement>, TThis>
+    public abstract class ListAutomaton<TList, TElement, TElementDistribution, TElementDistributionManipulator, TThis>
+        : Automaton<TList, TElement, TElementDistribution, ListManipulator<TList, TElement>, TElementDistributionManipulator, TThis>
         where TList : class, IList<TElement>, new()
         where TElementDistribution : class, IDistribution<TElement>, SettableToProduct<TElementDistribution>, SettableToWeightedSumExact<TElementDistribution>, CanGetLogAverageOf<TElementDistribution>, SettableToPartialUniform<TElementDistribution>, new()
-        where TThis : ListAutomaton<TList, TElement, TElementDistribution, TThis>, new()
+        where TElementDistributionManipulator : IDistributionManipulator<TElement, TElementDistribution>, new()
+        where TThis : ListAutomaton<TList, TElement, TElementDistribution, TElementDistributionManipulator, TThis>, new()
     {
         protected ListAutomaton()
         {
@@ -42,10 +43,11 @@ namespace Microsoft.ML.Probabilistic.Distributions.Automata
     /// <typeparam name="TList">The type of a list the automaton is defined on.</typeparam>
     /// <typeparam name="TElement">The type of a list element.</typeparam>
     /// <typeparam name="TElementDistribution">The type of a distribution over a list element.</typeparam>
-    public class ListAutomaton<TList, TElement, TElementDistribution>
-        : ListAutomaton<TList, TElement, TElementDistribution, ListAutomaton<TList, TElement, TElementDistribution>>
+    public class ListAutomaton<TList, TElement, TElementDistribution, TElementDistributionManipulator>
+        : ListAutomaton<TList, TElement, TElementDistribution, TElementDistributionManipulator, ListAutomaton<TList, TElement, TElementDistribution, TElementDistributionManipulator>>
         where TList : class, IList<TElement>, new()
         where TElementDistribution : class, IDistribution<TElement>, SettableToProduct<TElementDistribution>, SettableToWeightedSumExact<TElementDistribution>, CanGetLogAverageOf<TElementDistribution>, SettableToPartialUniform<TElementDistribution>, new()
+        where TElementDistributionManipulator : IDistributionManipulator<TElement, TElementDistribution>, new()
     {
         public ListAutomaton()
         {
@@ -81,10 +83,10 @@ namespace Microsoft.ML.Probabilistic.Distributions.Automata
     /// </summary>
     /// <typeparam name="TElement">The type of a list element.</typeparam>
     /// <typeparam name="TElementDistribution">The type of a distribution over a list element.</typeparam>
-    public class ListAutomaton<TElement, TElementDistribution>
-        : ListAutomaton<List<TElement>, TElement, TElementDistribution, ListAutomaton<TElement, TElementDistribution>>
-        where TElementDistribution : class, IDistribution<TElement>, SettableToProduct<TElementDistribution>, SettableToWeightedSumExact<TElementDistribution>,
-        CanGetLogAverageOf<TElementDistribution>, SettableToPartialUniform<TElementDistribution>, new()
+    public class ListAutomaton<TElement, TElementDistribution, TElementDistributionManipulator>
+        : ListAutomaton<List<TElement>, TElement, TElementDistribution, TElementDistributionManipulator, ListAutomaton<TElement, TElementDistribution, TElementDistributionManipulator>>
+        where TElementDistribution : class, IDistribution<TElement>, SettableToProduct<TElementDistribution>, SettableToWeightedSumExact<TElementDistribution>, CanGetLogAverageOf<TElementDistribution>, SettableToPartialUniform<TElementDistribution>, new()
+        where TElementDistributionManipulator : IDistributionManipulator<TElement, TElementDistribution>, new()
     {
         public ListAutomaton()
         {

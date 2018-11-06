@@ -858,7 +858,7 @@ namespace Microsoft.ML.Probabilistic.Tests
                 StringAutomaton.FromStates(
                     new[]
         {
-                            new StringAutomaton.State(0, new[] { new StringAutomaton.Transition(null, Weight.One, 2) }, Weight.One),
+                            new StringAutomaton.State(0, new[] { new StringAutomaton.Transition(default(DiscreteChar), Weight.One, 2) }, Weight.One),
                             new StringAutomaton.State(1, new StringAutomaton.Transition[0], Weight.One)
                         },
                     new StringAutomaton.State(1, new StringAutomaton.Transition[0], Weight.One)));
@@ -1882,7 +1882,7 @@ namespace Microsoft.ML.Probabilistic.Tests
         [Trait("Category", "StringInference")]
         internal void DeterminizeList()
         {
-            var automaton = ListAutomaton<string,StringDistribution>.Zero();
+            var automaton = ListAutomaton<string, StringDistribution, ReferenceDistributionManipulator<string, StringDistribution>>.Zero();
 
             const int TransitionsPerCharacter = 3;
             for (int i = 0; i < TransitionsPerCharacter; ++i)
@@ -1916,7 +1916,7 @@ namespace Microsoft.ML.Probabilistic.Tests
         [Trait("Category", "StringInference")]
         internal void DeterminizeList2()
         {
-            var automaton = ListAutomaton<string, StringDistribution>.Zero();
+            var automaton = ListAutomaton<string, StringDistribution, ReferenceDistributionManipulator<string, StringDistribution>>.Zero();
             var unif = StringDistribution.Uniform();
             var scaledUniform = StringDistribution.FromWorkspace(unif.GetWorkspaceOrPoint().Scale(1.0 / 1000));
    

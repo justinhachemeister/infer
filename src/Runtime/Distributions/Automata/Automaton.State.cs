@@ -8,7 +8,6 @@ namespace Microsoft.ML.Probabilistic.Distributions.Automata
     using System.Collections;
     using System.Collections.Generic;
     using System.Linq;
-    using System.Runtime.Serialization;
     using System.Text;
 
     using Microsoft.ML.Probabilistic.Collections;
@@ -17,11 +16,12 @@ namespace Microsoft.ML.Probabilistic.Distributions.Automata
     using Microsoft.ML.Probabilistic.Serialization;
     using Microsoft.ML.Probabilistic.Utilities;
 
-    public abstract partial class Automaton<TSequence, TElement, TElementDistribution, TSequenceManipulator, TThis>
+    public abstract partial class Automaton<TSequence, TElement, TElementDistribution, TSequenceManipulator, TElementDistributionManipulator, TThis>
         where TSequence : class, IEnumerable<TElement>
-        where TElementDistribution : class, IDistribution<TElement>, SettableToProduct<TElementDistribution>, SettableToWeightedSumExact<TElementDistribution>, CanGetLogAverageOf<TElementDistribution>, SettableToPartialUniform<TElementDistribution>, new()
+        where TElementDistribution : IDistribution<TElement>, SettableToProduct<TElementDistribution>, SettableToWeightedSumExact<TElementDistribution>, CanGetLogAverageOf<TElementDistribution>, SettableToPartialUniform<TElementDistribution>, new()
         where TSequenceManipulator : ISequenceManipulator<TSequence, TElement>, new()
-        where TThis : Automaton<TSequence, TElement, TElementDistribution, TSequenceManipulator, TThis>, new()
+        where TElementDistributionManipulator : IDistributionManipulator<TElement, TElementDistribution>, new()
+        where TThis : Automaton<TSequence, TElement, TElementDistribution, TSequenceManipulator, TElementDistributionManipulator, TThis>, new()
     {
         /// <summary>
         /// Represents a reference to a state of automaton for exposure in public API.
@@ -40,7 +40,7 @@ namespace Microsoft.ML.Probabilistic.Distributions.Automata
             /// Initializes a new instance of <see cref="State"/> class. Used internally by automaton implementation
             /// to wrap StateData for use in public Automaton APIs.
             /// </summary>
-            internal State(Automaton<TSequence, TElement, TElementDistribution, TSequenceManipulator, TThis> owner, int index, StateData data)
+            internal State(Automaton<TSequence, TElement, TElementDistribution, TSequenceManipulator, TElementDistributionManipulator, TThis> owner, int index, StateData data)
             {
                 this.Owner = owner;
                 this.Index = index;
@@ -71,7 +71,7 @@ namespace Microsoft.ML.Probabilistic.Distributions.Automata
             /// <summary>
             /// Automaton to which this state belongs.
             /// </summary>
-            public Automaton<TSequence, TElement, TElementDistribution, TSequenceManipulator, TThis> Owner { get; }
+            public Automaton<TSequence, TElement, TElementDistribution, TSequenceManipulator, TElementDistributionManipulator, TThis> Owner { get; }
 
             /// <summary>
             /// Gets the index of the state.
@@ -199,7 +199,7 @@ namespace Microsoft.ML.Probabilistic.Distributions.Automata
             /// <returns>The destination state of the added transition.</returns>
             public State AddEpsilonTransition(Weight weight, State destinationState = default(State), int group = 0)
             {
-                return this.AddTransition(null, weight, destinationState, group);
+                return this.AddTransition(ElementDistributionManipulator.CreateNullElementDistribution(), weight, destinationState, group);
             }
 
             /// <summary>

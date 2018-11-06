@@ -24,17 +24,19 @@ namespace Microsoft.ML.Probabilistic.Distributions.Automata
     /// <typeparam name="TDestSequenceManipulator">The type providing ways to manipulate sequences of type <typeparamref name="TDestSequence"/>.</typeparam> 
     /// <typeparam name="TDestAutomaton">The type of an automaton defined on <typeparamref name="TDestSequence"/>.</typeparam> 
     /// <typeparam name="TThis">The type of a concrete transducer class.</typeparam>
-    public abstract class Transducer<TSrcSequence, TSrcElement, TSrcElementDistribution, TSrcSequenceManipulator, TSrcAutomaton, TDestSequence, TDestElement, TDestElementDistribution, TDestSequenceManipulator, TDestAutomaton, TThis> :
-        TransducerBase<TSrcSequence, TSrcElement, TSrcElementDistribution, TSrcSequenceManipulator, TSrcAutomaton, TDestSequence, TDestElement, TDestElementDistribution, TDestSequenceManipulator, TDestAutomaton, PairDistribution<TSrcElement, TSrcElementDistribution, TDestElement, TDestElementDistribution>, TThis>
-        where TSrcElementDistribution : class, IDistribution<TSrcElement>, CanGetLogAverageOf<TSrcElementDistribution>, SettableToProduct<TSrcElementDistribution>, SettableToWeightedSumExact<TSrcElementDistribution>, SettableToPartialUniform<TSrcElementDistribution>, Sampleable<TSrcElement>, new()
-        where TDestElementDistribution : class, IDistribution<TDestElement>, CanGetLogAverageOf<TDestElementDistribution>, SettableToProduct<TDestElementDistribution>, SettableToWeightedSumExact<TDestElementDistribution>, SettableToPartialUniform<TDestElementDistribution>, Sampleable<TDestElement>, new()
+    public abstract class Transducer<TSrcSequence, TSrcElement, TSrcElementDistribution, TSrcSequenceManipulator, TSrcElementDistributionManipulator, TSrcAutomaton, TDestSequence, TDestElement, TDestElementDistribution, TDestSequenceManipulator, TDestElementDistributionManipulator, TDestAutomaton, TThis> :
+        TransducerBase<TSrcSequence, TSrcElement, TSrcElementDistribution, TSrcSequenceManipulator, TSrcElementDistributionManipulator, TSrcAutomaton, TDestSequence, TDestElement, TDestElementDistribution, TDestSequenceManipulator, TDestElementDistributionManipulator, TDestAutomaton, PairDistribution<TSrcElement, TSrcElementDistribution, TSrcElementDistributionManipulator, TDestElement, TDestElementDistribution, TDestElementDistributionManipulator>, TThis>
+        where TSrcElementDistribution : IDistribution<TSrcElement>, CanGetLogAverageOf<TSrcElementDistribution>, SettableToProduct<TSrcElementDistribution>, SettableToWeightedSumExact<TSrcElementDistribution>, SettableToPartialUniform<TSrcElementDistribution>, Sampleable<TSrcElement>, new()
+        where TDestElementDistribution : IDistribution<TDestElement>, CanGetLogAverageOf<TDestElementDistribution>, SettableToProduct<TDestElementDistribution>, SettableToWeightedSumExact<TDestElementDistribution>, SettableToPartialUniform<TDestElementDistribution>, Sampleable<TDestElement>, new()
         where TSrcSequence : class, IEnumerable<TSrcElement>
         where TDestSequence : class, IEnumerable<TDestElement>
         where TSrcSequenceManipulator : ISequenceManipulator<TSrcSequence, TSrcElement>, new()
         where TDestSequenceManipulator : ISequenceManipulator<TDestSequence, TDestElement>, new()
-        where TSrcAutomaton : Automaton<TSrcSequence, TSrcElement, TSrcElementDistribution, TSrcSequenceManipulator, TSrcAutomaton>, new()
-        where TDestAutomaton : Automaton<TDestSequence, TDestElement, TDestElementDistribution, TDestSequenceManipulator, TDestAutomaton>, new()
-        where TThis : Transducer<TSrcSequence, TSrcElement, TSrcElementDistribution, TSrcSequenceManipulator, TSrcAutomaton, TDestSequence, TDestElement, TDestElementDistribution, TDestSequenceManipulator, TDestAutomaton, TThis>, new()
+        where TSrcElementDistributionManipulator : IDistributionManipulator<TSrcElement, TSrcElementDistribution>, new()
+        where TDestElementDistributionManipulator : IDistributionManipulator<TDestElement, TDestElementDistribution>, new()
+        where TSrcAutomaton : Automaton<TSrcSequence, TSrcElement, TSrcElementDistribution, TSrcSequenceManipulator, TSrcElementDistributionManipulator, TSrcAutomaton>, new()
+        where TDestAutomaton : Automaton<TDestSequence, TDestElement, TDestElementDistribution, TDestSequenceManipulator, TDestElementDistributionManipulator, TDestAutomaton>, new()
+        where TThis : Transducer<TSrcSequence, TSrcElement, TSrcElementDistribution, TSrcSequenceManipulator, TSrcElementDistributionManipulator, TSrcAutomaton, TDestSequence, TDestElement, TDestElementDistribution, TDestSequenceManipulator, TDestElementDistributionManipulator, TDestAutomaton, TThis>, new()
     {
         /// <summary>
         /// Creates a transducer <c>T'(b, a) = T(a, b)</c>, where <c>T(a, b)</c> is a given transducer.
@@ -43,7 +45,7 @@ namespace Microsoft.ML.Probabilistic.Distributions.Automata
         /// <param name="transducer">The transducer to transpose.</param>
         /// <returns>The created transducer.</returns>
         public static TThat Transpose<TThat>(TThis transducer)
-            where TThat : Transducer<TDestSequence, TDestElement, TDestElementDistribution, TDestSequenceManipulator, TDestAutomaton, TSrcSequence, TSrcElement, TSrcElementDistribution, TSrcSequenceManipulator, TSrcAutomaton, TThat>, new()
+            where TThat : Transducer<TDestSequence, TDestElement, TDestElementDistribution, TDestSequenceManipulator, TDestElementDistributionManipulator, TDestAutomaton, TSrcSequence, TSrcElement, TSrcElementDistribution, TSrcSequenceManipulator, TSrcElementDistributionManipulator, TSrcAutomaton, TThat>, new()
         {
             Argument.CheckIfNotNull(transducer, "transducer");
 
@@ -63,13 +65,14 @@ namespace Microsoft.ML.Probabilistic.Distributions.Automata
     /// <typeparam name="TSequenceManipulator">The type providing ways to manipulate sequences of type <typeparamref name="TSequence"/>.</typeparam>
     /// <typeparam name="TAutomaton">The type of an automaton defined on <typeparamref name="TSequence"/>.</typeparam> 
     /// <typeparam name="TThis">The type of a concrete transducer class.</typeparam>
-    public abstract class Transducer<TSequence, TElement, TElementDistribution, TSequenceManipulator, TAutomaton, TThis> :
-        TransducerBase<TSequence, TElement, TElementDistribution, TSequenceManipulator, TAutomaton, TSequence, TElement, TElementDistribution, TSequenceManipulator, TAutomaton, PairDistribution<TElement, TElementDistribution>, TThis>
-        where TElementDistribution : class, IDistribution<TElement>, CanGetLogAverageOf<TElementDistribution>, SettableToProduct<TElementDistribution>, SettableToWeightedSumExact<TElementDistribution>, SettableToPartialUniform<TElementDistribution>, Sampleable<TElement>, new()
+    public abstract class Transducer<TSequence, TElement, TElementDistribution, TSequenceManipulator, TElementDistributionManipulator, TAutomaton, TThis> :
+        TransducerBase<TSequence, TElement, TElementDistribution, TSequenceManipulator, TElementDistributionManipulator, TAutomaton, TSequence, TElement, TElementDistribution, TSequenceManipulator, TElementDistributionManipulator, TAutomaton, PairDistribution<TElement, TElementDistribution, TElementDistributionManipulator>, TThis>
+        where TElementDistribution : IDistribution<TElement>, CanGetLogAverageOf<TElementDistribution>, SettableToProduct<TElementDistribution>, SettableToWeightedSumExact<TElementDistribution>, SettableToPartialUniform<TElementDistribution>, Sampleable<TElement>, new()
         where TSequence : class, IEnumerable<TElement>
         where TSequenceManipulator : ISequenceManipulator<TSequence, TElement>, new()
-        where TAutomaton : Automaton<TSequence, TElement, TElementDistribution, TSequenceManipulator, TAutomaton>, new()
-        where TThis : Transducer<TSequence, TElement, TElementDistribution, TSequenceManipulator, TAutomaton, TThis>, new()
+        where TElementDistributionManipulator : IDistributionManipulator<TElement, TElementDistribution>, new()
+        where TAutomaton : Automaton<TSequence, TElement, TElementDistribution, TSequenceManipulator, TElementDistributionManipulator, TAutomaton>, new()
+        where TThis : Transducer<TSequence, TElement, TElementDistribution, TSequenceManipulator, TElementDistributionManipulator, TAutomaton, TThis>, new()
     {
         /// <summary>
         /// Creates a transducer <c>T(a, b) = I[a = b]</c>.
@@ -77,7 +80,7 @@ namespace Microsoft.ML.Probabilistic.Distributions.Automata
         /// <returns>The created transducer.</returns>
         public static TThis Copy()
         {
-            return Copy(Automaton<TSequence, TElement, TElementDistribution, TSequenceManipulator, TAutomaton>.Constant(1.0));
+            return Copy(Automaton<TSequence, TElement, TElementDistribution, TSequenceManipulator, TElementDistributionManipulator, TAutomaton>.Constant(1.0));
         }
 
         /// <summary>
@@ -88,7 +91,7 @@ namespace Microsoft.ML.Probabilistic.Distributions.Automata
         /// <returns>The created transducer.</returns>
         public static TThis Copy(TElementDistribution allowedElements)
         {
-            return Copy(Automaton<TSequence, TElement, TElementDistribution, TSequenceManipulator, TAutomaton>.Constant(1.0, allowedElements));
+            return Copy(Automaton<TSequence, TElement, TElementDistribution, TSequenceManipulator, TElementDistributionManipulator, TAutomaton>.Constant(1.0, allowedElements));
         }
 
         /// <summary>
@@ -98,7 +101,7 @@ namespace Microsoft.ML.Probabilistic.Distributions.Automata
         /// <returns>The created transducer.</returns>
         public static TThis Copy(TSequence sequence)
         {
-            return Copy(Automaton<TSequence, TElement, TElementDistribution, TSequenceManipulator, TAutomaton>.ConstantOn(1.0, sequence));
+            return Copy(Automaton<TSequence, TElement, TElementDistribution, TSequenceManipulator, TElementDistributionManipulator, TAutomaton>.ConstantOn(1.0, sequence));
         }
 
         /// <summary>
@@ -120,20 +123,20 @@ namespace Microsoft.ML.Probabilistic.Distributions.Automata
                         if (transitionElementDistribution == null)
                         {
 
-                            return Tuple.Create<PairDistribution<TElement, TElementDistribution>, Weight>(null, transitionWeight);
+                            return Tuple.Create<PairDistribution<TElement, TElementDistribution, TElementDistributionManipulator>, Weight>(null, transitionWeight);
                         }
 
                         if ((group == 0) || (transitionGroup == group))
                         {
                             // If a target group is specified: copy if this group is the target group
                             return Tuple.Create(
-                                PairDistribution<TElement, TElementDistribution>.Constrained(transitionElementDistribution, Distribution.CreatePartialUniform(transitionElementDistribution)),
+                                PairDistribution<TElement, TElementDistribution, TElementDistributionManipulator>.Constrained(transitionElementDistribution, Distribution.CreatePartialUniform(transitionElementDistribution)),
                                 transitionWeight);
                         }
 
                         // Otherwise consume but don't copy
                         return Tuple.Create(
-                            PairDistribution<TElement, TElementDistribution>.FromFirst(transitionElementDistribution),
+                            PairDistribution<TElement, TElementDistribution, TElementDistributionManipulator>.FromFirst(transitionElementDistribution),
                             transitionWeight);
                     });
             
@@ -153,7 +156,7 @@ namespace Microsoft.ML.Probabilistic.Distributions.Automata
         /// <returns>The created transducer.</returns>
         public static TThis CopyElement(TElement element)
         {
-            return Copy(Automaton<TSequence, TElement, TElementDistribution, TSequenceManipulator, TAutomaton>.ConstantOnElement(1.0, element));
+            return Copy(Automaton<TSequence, TElement, TElementDistribution, TSequenceManipulator, TElementDistributionManipulator, TAutomaton>.ConstantOnElement(1.0, element));
         }
 
         /// <summary>
@@ -164,7 +167,7 @@ namespace Microsoft.ML.Probabilistic.Distributions.Automata
         /// <returns>The created transducer.</returns>
         public static TThis CopyElement(TElementDistribution allowedElements)
         {
-            return Copy(Automaton<TSequence, TElement, TElementDistribution, TSequenceManipulator, TAutomaton>.ConstantOnElement(1.0, allowedElements));
+            return Copy(Automaton<TSequence, TElement, TElementDistribution, TSequenceManipulator, TElementDistributionManipulator, TAutomaton>.ConstantOnElement(1.0, allowedElements));
         }
 
         /// <summary>
@@ -187,7 +190,7 @@ namespace Microsoft.ML.Probabilistic.Distributions.Automata
         /// <returns>The created transducer.</returns>
         public static TThis FromAutomaton(
             TAutomaton automaton,
-            Func<TElementDistribution, Weight, Tuple<PairDistribution<TElement, TElementDistribution>, Weight>> transitionTransform)
+            Func<TElementDistribution, Weight, Tuple<PairDistribution<TElement, TElementDistribution, TElementDistributionManipulator>, Weight>> transitionTransform)
         {
             Argument.CheckIfNotNull(transitionTransform, "transitionTransform");
             

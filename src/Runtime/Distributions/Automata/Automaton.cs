@@ -52,11 +52,12 @@ namespace Microsoft.ML.Probabilistic.Distributions.Automata
     /// <typeparam name="TThis">The type of a concrete automaton class.</typeparam>
     [Quality(QualityBand.Experimental)]
     [Serializable]
-    public abstract partial class Automaton<TSequence, TElement, TElementDistribution, TSequenceManipulator, TThis> : ISerializable
+    public abstract partial class Automaton<TSequence, TElement, TElementDistribution, TSequenceManipulator, TElementDistributionManipulator, TThis> : ISerializable
         where TSequence : class, IEnumerable<TElement>
-        where TElementDistribution : class, IDistribution<TElement>, SettableToProduct<TElementDistribution>, SettableToWeightedSumExact<TElementDistribution>, CanGetLogAverageOf<TElementDistribution>, SettableToPartialUniform<TElementDistribution>, new()
+        where TElementDistribution : IDistribution<TElement>, SettableToProduct<TElementDistribution>, SettableToWeightedSumExact<TElementDistribution>, CanGetLogAverageOf<TElementDistribution>, SettableToPartialUniform<TElementDistribution>, new()
         where TSequenceManipulator : ISequenceManipulator<TSequence, TElement>, new()
-        where TThis : Automaton<TSequence, TElement, TElementDistribution, TSequenceManipulator, TThis>, new()
+        where TElementDistributionManipulator : IDistributionManipulator<TElement, TElementDistribution>, new()
+        where TThis : Automaton<TSequence, TElement, TElementDistribution, TSequenceManipulator, TElementDistributionManipulator, TThis>, new()
     {
         #region Fields & constants
 
@@ -108,15 +109,16 @@ namespace Microsoft.ML.Probabilistic.Distributions.Automata
         #region Constructors
 
         /// <summary>
-        /// Initializes static members of the <see cref="Automaton{TSequence,TElement,TElementDistribution,TSequenceManipulator,TThis}"/> class.
+        /// Initializes static members of the <see cref="Automaton{TSequence,TElement,TElementDistribution,TSequenceManipulator,TElementDistributionManipulator,TThis}"/> class.
         /// </summary>
         static Automaton()
         {
             SequenceManipulator = new TSequenceManipulator();
+            ElementDistributionManipulator = new TElementDistributionManipulator();
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="Automaton{TSequence,TElement,TElementDistribution,TSequenceManipulator,TThis}"/>
+        /// Initializes a new instance of the <see cref="Automaton{TSequence,TElement,TElementDistribution,TSequenceManipulator,TElementDistributionManipulator,TThis}"/>
         /// class by setting it to be zero everywhere.
         /// </summary>
         protected Automaton()
@@ -132,11 +134,9 @@ namespace Microsoft.ML.Probabilistic.Distributions.Automata
         /// <summary>
         /// Gets the sequence manipulator.
         /// </summary>
-        public static TSequenceManipulator SequenceManipulator
-        {
-            get;
-            private set;
-        }
+        public static TSequenceManipulator SequenceManipulator { get; private set; }
+
+        public static TElementDistributionManipulator ElementDistributionManipulator { get; private set; }
 
         /// <summary>
         /// Gets or sets a value that, if not null, will be returned when computing the log value of any sequence
@@ -349,7 +349,7 @@ namespace Microsoft.ML.Probabilistic.Distributions.Automata
         /// <returns>The created automaton.</returns>
         public static TThis ConstantOnElementLog(double logValue, TElementDistribution allowedElements)
         {
-            Argument.CheckIfNotNull(allowedElements, "allowedElements");
+            Argument.CheckIfValid(!ElementDistributionManipulator.IsNull(allowedElements), nameof(allowedElements));
 
             TThis result = Zero();
             if (!double.IsNegativeInfinity(logValue))
@@ -1582,7 +1582,7 @@ namespace Microsoft.ML.Probabilistic.Distributions.Automata
         /// <param name="allowedElements">The distribution representing allowed sequence elements.</param>
         public void SetToConstantLog(double logValue, TElementDistribution allowedElements)
         {
-            Argument.CheckIfNotNull(allowedElements, "allowedElements");
+            Argument.CheckIfValid(!ElementDistributionManipulator.IsNull(allowedElements), nameof(allowedElements));
 
             allowedElements = Distribution.CreatePartialUniform(allowedElements);
             this.SetToZero();
@@ -1621,13 +1621,14 @@ namespace Microsoft.ML.Probabilistic.Distributions.Automata
         /// <typeparam name="TSrcAutomaton">The type of a source automaton.</typeparam>
         /// <param name="sourceAutomaton">The source automaton.</param>
         /// <param name="transitionTransform">The transition transformation.</param>
-        public void SetToFunction<TSrcSequence, TSrcElement, TSrcElementDistribution, TSrcSequenceManipulator, TSrcAutomaton>(
-            Automaton<TSrcSequence, TSrcElement, TSrcElementDistribution, TSrcSequenceManipulator, TSrcAutomaton> sourceAutomaton,
+        public void SetToFunction<TSrcSequence, TSrcElement, TSrcElementDistribution, TSrcSequenceManipulator, TSrcElementDistributionManipulator, TSrcAutomaton>(
+            Automaton<TSrcSequence, TSrcElement, TSrcElementDistribution, TSrcSequenceManipulator, TSrcElementDistributionManipulator, TSrcAutomaton> sourceAutomaton,
             Func<TSrcElementDistribution, Weight, int, Tuple<TElementDistribution, Weight>> transitionTransform)
-            where TSrcElementDistribution : class, IDistribution<TSrcElement>, CanGetLogAverageOf<TSrcElementDistribution>, SettableToProduct<TSrcElementDistribution>, SettableToWeightedSumExact<TSrcElementDistribution>, SettableToPartialUniform<TSrcElementDistribution>, new()
+            where TSrcElementDistribution : IDistribution<TSrcElement>, CanGetLogAverageOf<TSrcElementDistribution>, SettableToProduct<TSrcElementDistribution>, SettableToWeightedSumExact<TSrcElementDistribution>, SettableToPartialUniform<TSrcElementDistribution>, new()
             where TSrcSequence : class, IEnumerable<TSrcElement>
             where TSrcSequenceManipulator : ISequenceManipulator<TSrcSequence, TSrcElement>, new()
-            where TSrcAutomaton : Automaton<TSrcSequence, TSrcElement, TSrcElementDistribution, TSrcSequenceManipulator, TSrcAutomaton>, new()
+            where TSrcElementDistributionManipulator : IDistributionManipulator<TSrcElement, TSrcElementDistribution>, new()
+            where TSrcAutomaton : Automaton<TSrcSequence, TSrcElement, TSrcElementDistribution, TSrcSequenceManipulator, TSrcElementDistributionManipulator, TSrcAutomaton>, new()
         {
             Argument.CheckIfNotNull(sourceAutomaton, "sourceAutomaton");
             Argument.CheckIfNotNull(transitionTransform, "transitionTransform");
@@ -2956,7 +2957,7 @@ namespace Microsoft.ML.Probabilistic.Distributions.Automata
             var hasLogValueOverride = propertyMask[1 << idx++];
             var hasPruneTransitions = propertyMask[1 << idx++];
             var hasStartState = propertyMask[1 << idx++];
-
+            
             res.isEpsilonFree = hasEpsilonFree ? (bool?)isEpsilonFree : null;
 
             if (hasLogValueOverride)

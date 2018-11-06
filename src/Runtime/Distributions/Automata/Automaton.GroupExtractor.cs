@@ -13,15 +13,16 @@ namespace Microsoft.ML.Probabilistic.Distributions.Automata
     /// <content>
     /// Extracts groups from a loop-free automaton.
     /// </content>
-    public abstract partial class Automaton<TSequence, TElement, TElementDistribution, TSequenceManipulator, TThis>
+    public abstract partial class Automaton<TSequence, TElement, TElementDistribution, TSequenceManipulator, TElementDistributionManipulator, TThis>
         where TSequence : class, IEnumerable<TElement>
-        where TElementDistribution : class, IDistribution<TElement>, SettableToProduct<TElementDistribution>, SettableToWeightedSumExact<TElementDistribution>, CanGetLogAverageOf<TElementDistribution>, SettableToPartialUniform<TElementDistribution>, new()
+        where TElementDistribution : IDistribution<TElement>, SettableToProduct<TElementDistribution>, SettableToWeightedSumExact<TElementDistribution>, CanGetLogAverageOf<TElementDistribution>, SettableToPartialUniform<TElementDistribution>, new()
         where TSequenceManipulator : ISequenceManipulator<TSequence, TElement>, new()
-        where TThis : Automaton<TSequence, TElement, TElementDistribution, TSequenceManipulator, TThis>, new()
+        where TElementDistributionManipulator : IDistributionManipulator<TElement, TElementDistribution>, new()
+        where TThis : Automaton<TSequence, TElement, TElementDistribution, TSequenceManipulator, TElementDistributionManipulator, TThis>, new()
     {
         private static class GroupExtractor
         {           
-            internal static Dictionary<int, TThis> ExtractGroups(Automaton<TSequence, TElement, TElementDistribution, TSequenceManipulator, TThis> automaton)
+            internal static Dictionary<int, TThis> ExtractGroups(Automaton<TSequence, TElement, TElementDistribution, TSequenceManipulator, TElementDistributionManipulator, TThis> automaton)
             {
                 var order = ComputeTopologicalOrderAndGroupSubgraphs(automaton, out var subGraphs);
                 return BuildSubautomata(automaton.States, order, subGraphs);
@@ -102,7 +103,7 @@ namespace Microsoft.ML.Probabilistic.Distributions.Automata
                 return weights;
             }
 
-            private static List<State> ComputeTopologicalOrderAndGroupSubgraphs(Automaton<TSequence, TElement, TElementDistribution, TSequenceManipulator, TThis> automaton, out Dictionary<int, HashSet<int>> groupSubGraphs)
+            private static List<State> ComputeTopologicalOrderAndGroupSubgraphs(Automaton<TSequence, TElement, TElementDistribution, TSequenceManipulator, TElementDistributionManipulator, TThis> automaton, out Dictionary<int, HashSet<int>> groupSubGraphs)
             {
                 var topologicalOrder = new Stack<int>();
                 var temporary = new BitArray(automaton.States.Count);

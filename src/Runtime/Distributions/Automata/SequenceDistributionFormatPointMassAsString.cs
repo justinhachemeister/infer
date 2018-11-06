@@ -40,7 +40,7 @@ namespace Microsoft.ML.Probabilistic.Distributions.Automata
         /// <typeparam name="TSequenceDistribution">The concrete type of <paramref name="sequenceDistribution"/>.</typeparam>
         /// <param name="sequenceDistribution">The sequence distribution to convert to string.</param>
         /// <returns>The string representation of the <paramref name="sequenceDistribution"/>.</returns>
-        protected override string ConvertPointMassToString<TSequence, TElement, TElementDistribution, TSequenceManipulator, TWeightFunction, TSequenceDistribution>(
+        protected override string ConvertPointMassToString<TSequence, TElement, TElementDistribution, TSequenceManipulator, TElementDistributionManipulator, TWeightFunction, TSequenceDistribution>(
             TSequenceDistribution sequenceDistribution)
         {
             var pointMass = sequenceDistribution.Point;

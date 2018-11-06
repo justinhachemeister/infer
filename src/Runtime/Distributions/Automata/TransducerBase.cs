@@ -27,18 +27,23 @@ namespace Microsoft.ML.Probabilistic.Distributions.Automata
     /// <typeparam name="TDestAutomaton">The type of an automaton defined on <typeparamref name="TDestSequence"/>.</typeparam> 
     /// <typeparam name="TPairDistribution">The type of a distribution over pairs of <typeparamref name="TSrcElement"/> and <typeparamref name="TDestElement"/>.</typeparam>
     /// <typeparam name="TThis">The type of a concrete transducer class.</typeparam>
-    public abstract class TransducerBase<TSrcSequence, TSrcElement, TSrcElementDistribution, TSrcSequenceManipulator, TSrcAutomaton, TDestSequence, TDestElement, TDestElementDistribution, TDestSequenceManipulator, TDestAutomaton, TPairDistribution, TThis>
-        where TSrcElementDistribution : class, IDistribution<TSrcElement>, CanGetLogAverageOf<TSrcElementDistribution>, SettableToProduct<TSrcElementDistribution>, SettableToWeightedSumExact<TSrcElementDistribution>, SettableToPartialUniform<TSrcElementDistribution>, Sampleable<TSrcElement>, new()
-        where TDestElementDistribution : class, IDistribution<TDestElement>, CanGetLogAverageOf<TDestElementDistribution>, SettableToProduct<TDestElementDistribution>, SettableToWeightedSumExact<TDestElementDistribution>, SettableToPartialUniform<TDestElementDistribution>, Sampleable<TDestElement>, new()
+    public abstract class TransducerBase<TSrcSequence, TSrcElement, TSrcElementDistribution, TSrcSequenceManipulator, TSrcElementDistributionManipulator, TSrcAutomaton, TDestSequence, TDestElement, TDestElementDistribution, TDestSequenceManipulator, TDestElementDistributionManipulator, TDestAutomaton, TPairDistribution, TThis>
+        where TSrcElementDistribution : IDistribution<TSrcElement>, CanGetLogAverageOf<TSrcElementDistribution>, SettableToProduct<TSrcElementDistribution>, SettableToWeightedSumExact<TSrcElementDistribution>, SettableToPartialUniform<TSrcElementDistribution>, Sampleable<TSrcElement>, new()
+        where TDestElementDistribution : IDistribution<TDestElement>, CanGetLogAverageOf<TDestElementDistribution>, SettableToProduct<TDestElementDistribution>, SettableToWeightedSumExact<TDestElementDistribution>, SettableToPartialUniform<TDestElementDistribution>, Sampleable<TDestElement>, new()
         where TSrcSequence : class, IEnumerable<TSrcElement>
         where TDestSequence : class, IEnumerable<TDestElement>
         where TSrcSequenceManipulator : ISequenceManipulator<TSrcSequence, TSrcElement>, new()
         where TDestSequenceManipulator : ISequenceManipulator<TDestSequence, TDestElement>, new()
-        where TSrcAutomaton : Automaton<TSrcSequence, TSrcElement, TSrcElementDistribution, TSrcSequenceManipulator, TSrcAutomaton>, new()
-        where TDestAutomaton : Automaton<TDestSequence, TDestElement, TDestElementDistribution, TDestSequenceManipulator, TDestAutomaton>, new()
-        where TPairDistribution : PairDistributionBase<TSrcElement, TSrcElementDistribution, TDestElement, TDestElementDistribution, TPairDistribution>, new()
-        where TThis : TransducerBase<TSrcSequence, TSrcElement, TSrcElementDistribution, TSrcSequenceManipulator, TSrcAutomaton, TDestSequence, TDestElement, TDestElementDistribution, TDestSequenceManipulator, TDestAutomaton, TPairDistribution, TThis>, new()
+        where TSrcElementDistributionManipulator : IDistributionManipulator<TSrcElement, TSrcElementDistribution>, new()
+        where TDestElementDistributionManipulator : IDistributionManipulator<TDestElement, TDestElementDistribution>, new()
+        where TSrcAutomaton : Automaton<TSrcSequence, TSrcElement, TSrcElementDistribution, TSrcSequenceManipulator, TSrcElementDistributionManipulator, TSrcAutomaton>, new()
+        where TDestAutomaton : Automaton<TDestSequence, TDestElement, TDestElementDistribution, TDestSequenceManipulator, TDestElementDistributionManipulator, TDestAutomaton>, new()
+        where TPairDistribution : PairDistributionBase<TSrcElement, TSrcElementDistribution, TSrcElementDistributionManipulator, TDestElement, TDestElementDistribution, TDestElementDistributionManipulator, TPairDistribution>, new()
+        where TThis : TransducerBase<TSrcSequence, TSrcElement, TSrcElementDistribution, TSrcSequenceManipulator, TSrcElementDistributionManipulator, TSrcAutomaton, TDestSequence, TDestElement, TDestElementDistribution, TDestSequenceManipulator, TDestElementDistributionManipulator, TDestAutomaton, TPairDistribution, TThis>, new()
     {
+        protected static TSrcElementDistributionManipulator SrcElementDistributionManipulator = new TSrcElementDistributionManipulator();
+        protected static TDestElementDistributionManipulator DestElementDistributionManipulator = new TDestElementDistributionManipulator();
+
         /// <summary>
         /// An automaton defined on sequences of element pairs that represents the transducer.
         /// </summary>
@@ -72,7 +77,7 @@ namespace Microsoft.ML.Probabilistic.Distributions.Automata
             result.sequencePairToWeight.SetToFunction(
                 srcAutomaton,
                 (dist, weight, group) => Tuple.Create(
-                    dist == null ? null : PairDistributionBase<TSrcElement, TSrcElementDistribution, TDestElement, TDestElementDistribution, TPairDistribution>.FromFirst(dist),
+                    dist == null ? null : PairDistributionBase<TSrcElement, TSrcElementDistribution, TSrcElementDistributionManipulator, TDestElement, TDestElementDistribution, TDestElementDistributionManipulator, TPairDistribution>.FromFirst(dist),
                     weight));
 
             return result;
@@ -85,7 +90,7 @@ namespace Microsoft.ML.Probabilistic.Distributions.Automata
         /// <returns>The created transducer.</returns>
         public static TThis Consume(TSrcSequence srcSequence)
         {
-            return Consume(Automaton<TSrcSequence, TSrcElement, TSrcElementDistribution, TSrcSequenceManipulator, TSrcAutomaton>.ConstantOn(1.0, srcSequence));
+            return Consume(Automaton<TSrcSequence, TSrcElement, TSrcElementDistribution, TSrcSequenceManipulator, TSrcElementDistributionManipulator, TSrcAutomaton>.ConstantOn(1.0, srcSequence));
         }
 
         /// <summary>
@@ -95,7 +100,7 @@ namespace Microsoft.ML.Probabilistic.Distributions.Automata
         /// <returns>The created transducer.</returns>
         public static TThis ConsumeElement(TSrcElement srcElement)
         {
-            return Consume(Automaton<TSrcSequence, TSrcElement, TSrcElementDistribution, TSrcSequenceManipulator, TSrcAutomaton>.ConstantOnElement(1.0, srcElement));
+            return Consume(Automaton<TSrcSequence, TSrcElement, TSrcElementDistribution, TSrcSequenceManipulator, TSrcElementDistributionManipulator, TSrcAutomaton>.ConstantOnElement(1.0, srcElement));
         }
 
         /// <summary>
@@ -111,7 +116,7 @@ namespace Microsoft.ML.Probabilistic.Distributions.Automata
             result.sequencePairToWeight.SetToFunction(
                 destAutomaton,
                 (dist, weight, group) => Tuple.Create(
-                    dist == null ? null : PairDistributionBase<TSrcElement, TSrcElementDistribution, TDestElement, TDestElementDistribution, TPairDistribution>.FromSecond(dist),
+                    dist == null ? null : PairDistributionBase<TSrcElement, TSrcElementDistribution, TSrcElementDistributionManipulator, TDestElement, TDestElementDistribution, TDestElementDistributionManipulator, TPairDistribution>.FromSecond(dist),
                     weight));
             return result;
         }
@@ -123,7 +128,7 @@ namespace Microsoft.ML.Probabilistic.Distributions.Automata
         /// <returns>The created transducer.</returns>
         public static TThis Produce(TDestSequence destSequence)
         {
-            return Produce(Automaton<TDestSequence, TDestElement, TDestElementDistribution, TDestSequenceManipulator, TDestAutomaton>.ConstantOn(1.0, destSequence));
+            return Produce(Automaton<TDestSequence, TDestElement, TDestElementDistribution, TDestSequenceManipulator, TDestElementDistributionManipulator, TDestAutomaton>.ConstantOn(1.0, destSequence));
         }
 
         /// <summary>
@@ -133,7 +138,7 @@ namespace Microsoft.ML.Probabilistic.Distributions.Automata
         /// <returns>The created transducer.</returns>
         public static TThis ProduceElement(TDestElement destElement)
         {
-            return Produce(Automaton<TDestSequence, TDestElement, TDestElementDistribution, TDestSequenceManipulator, TDestAutomaton>.ConstantOnElement(1.0, destElement));
+            return Produce(Automaton<TDestSequence, TDestElement, TDestElementDistribution, TDestSequenceManipulator, TDestElementDistributionManipulator, TDestAutomaton>.ConstantOnElement(1.0, destElement));
         }
 
         /// <summary>
@@ -143,7 +148,7 @@ namespace Microsoft.ML.Probabilistic.Distributions.Automata
         /// <returns>The created transducer.</returns>
         public static TThis ProduceElement(TDestElementDistribution destElementDist)
         {
-            return Produce(Automaton<TDestSequence, TDestElement, TDestElementDistribution, TDestSequenceManipulator, TDestAutomaton>.ConstantOnElement(1.0, destElementDist));
+            return Produce(Automaton<TDestSequence, TDestElement, TDestElementDistribution, TDestSequenceManipulator, TDestElementDistributionManipulator, TDestAutomaton>.ConstantOnElement(1.0, destElementDist));
         }
 
         /// <summary>
@@ -174,8 +179,8 @@ namespace Microsoft.ML.Probabilistic.Distributions.Automata
             Argument.CheckIfNotNull(destSequence, "destSequence");
 
             return Replace(
-                Automaton<TSrcSequence, TSrcElement, TSrcElementDistribution, TSrcSequenceManipulator, TSrcAutomaton>.ConstantOn(1.0, srcSequence),
-                Automaton<TDestSequence, TDestElement, TDestElementDistribution, TDestSequenceManipulator, TDestAutomaton>.ConstantOn(1.0, destSequence));
+                Automaton<TSrcSequence, TSrcElement, TSrcElementDistribution, TSrcSequenceManipulator, TSrcElementDistributionManipulator, TSrcAutomaton>.ConstantOn(1.0, srcSequence),
+                Automaton<TDestSequence, TDestElement, TDestElementDistribution, TDestSequenceManipulator, TDestElementDistributionManipulator, TDestAutomaton>.ConstantOn(1.0, destSequence));
         }
 
         /// <summary>
@@ -187,12 +192,12 @@ namespace Microsoft.ML.Probabilistic.Distributions.Automata
         /// <returns>The created transducer.</returns>
         public static TThis Replace(TSrcElementDistribution allowedSrcElements, TDestElementDistribution allowedDestElements)
         {
-            Argument.CheckIfNotNull(allowedSrcElements, "allowedSrcElements");
-            Argument.CheckIfNotNull(allowedDestElements, "allowedDestElements");
+            Argument.CheckIfValid(!SrcElementDistributionManipulator.IsNull(allowedSrcElements), nameof(allowedSrcElements));
+            Argument.CheckIfValid(!DestElementDistributionManipulator.IsNull(allowedDestElements), nameof(allowedDestElements));
 
             return Replace(
-                Automaton<TSrcSequence, TSrcElement, TSrcElementDistribution, TSrcSequenceManipulator, TSrcAutomaton>.Constant(1.0, allowedSrcElements),
-                Automaton<TDestSequence, TDestElement, TDestElementDistribution, TDestSequenceManipulator, TDestAutomaton>.Constant(1.0, allowedDestElements));
+                Automaton<TSrcSequence, TSrcElement, TSrcElementDistribution, TSrcSequenceManipulator, TSrcElementDistributionManipulator, TSrcAutomaton>.Constant(1.0, allowedSrcElements),
+                Automaton<TDestSequence, TDestElement, TDestElementDistribution, TDestSequenceManipulator, TDestElementDistributionManipulator, TDestAutomaton>.Constant(1.0, allowedDestElements));
         }
 
         /// <summary>
@@ -326,7 +331,7 @@ namespace Microsoft.ML.Probabilistic.Distributions.Automata
                 // The projected automaton must be epsilon-free
                 srcAutomaton.MakeEpsilonFree();
 
-                var destStateCache = new Dictionary<(int, int), Automaton<TDestSequence, TDestElement, TDestElementDistribution, TDestSequenceManipulator, TDestAutomaton>.State>();
+                var destStateCache = new Dictionary<(int, int), Automaton<TDestSequence, TDestElement, TDestElementDistribution, TDestSequenceManipulator, TDestElementDistributionManipulator, TDestAutomaton>.State>();
                 result.Start = this.BuildProjectionOfAutomaton(result, this.sequencePairToWeight.Start, srcAutomaton.Start, destStateCache);
                 result.RemoveDeadStates();
                 result.SimplifyIfNeeded();
@@ -353,7 +358,7 @@ namespace Microsoft.ML.Probabilistic.Distributions.Automata
 
             if (!this.sequencePairToWeight.IsCanonicZero())
             {
-                var destStateCache = new Dictionary<(int, int), Automaton<TDestSequence, TDestElement, TDestElementDistribution, TDestSequenceManipulator, TDestAutomaton>.State>();
+                var destStateCache = new Dictionary<(int, int), Automaton<TDestSequence, TDestElement, TDestElementDistribution, TDestSequenceManipulator, TDestElementDistributionManipulator, TDestAutomaton>.State>();
                 result.Start = this.BuildProjectionOfSequence(result, this.sequencePairToWeight.Start, srcSequence, 0, destStateCache);
                 result.RemoveDeadStates();
                 result.SimplifyIfNeeded();
@@ -407,21 +412,21 @@ namespace Microsoft.ML.Probabilistic.Distributions.Automata
         /// <param name="srcSequenceIndex">The current index in the sequence being projected.</param>
         /// <param name="destStateCache">The cache of the created projection states.</param>
         /// <returns>The state of the projection corresponding to the given mapping state and the position in the projected sequence.</returns>
-        private Automaton<TDestSequence, TDestElement, TDestElementDistribution, TDestSequenceManipulator, TDestAutomaton>.State BuildProjectionOfSequence(
+        private Automaton<TDestSequence, TDestElement, TDestElementDistribution, TDestSequenceManipulator, TDestElementDistributionManipulator, TDestAutomaton>.State BuildProjectionOfSequence(
             TDestAutomaton destAutomaton,
             PairListAutomaton.State mappingState,
             TSrcSequence srcSequence,
             int srcSequenceIndex,
-            Dictionary<(int, int), Automaton<TDestSequence, TDestElement, TDestElementDistribution, TDestSequenceManipulator, TDestAutomaton>.State> destStateCache)
+            Dictionary<(int, int), Automaton<TDestSequence, TDestElement, TDestElementDistribution, TDestSequenceManipulator, TDestElementDistributionManipulator, TDestAutomaton>.State> destStateCache)
         {
             //// The code of this method has a lot in common with the code of Automaton<>.BuildProduct.
             //// Unfortunately, it's not clear how to avoid the duplication in the current design.
 
             var sourceSequenceManipulator =
-                Automaton<TSrcSequence, TSrcElement, TSrcElementDistribution, TSrcSequenceManipulator, TSrcAutomaton>.SequenceManipulator;
+                Automaton<TSrcSequence, TSrcElement, TSrcElementDistribution, TSrcSequenceManipulator, TSrcElementDistributionManipulator, TSrcAutomaton>.SequenceManipulator;
 
             var statePair = (mappingState.Index, srcSequenceIndex);
-            Automaton<TDestSequence, TDestElement, TDestElementDistribution, TDestSequenceManipulator, TDestAutomaton>.State destState;
+            Automaton<TDestSequence, TDestElement, TDestElementDistribution, TDestSequenceManipulator, TDestElementDistributionManipulator, TDestAutomaton>.State destState;
             if (destStateCache.TryGetValue(statePair, out destState))
             {
                 return destState;
@@ -441,7 +446,10 @@ namespace Microsoft.ML.Probabilistic.Distributions.Automata
                 // Epsilon transition case
                 if (IsSrcEpsilon(mappingTransition))
                 {
-                    TDestElementDistribution destElementWeights = mappingTransition.ElementDistribution == null ? null : mappingTransition.ElementDistribution.Second;
+                    TDestElementDistribution destElementWeights =
+                        mappingTransition.ElementDistribution == null
+                            ? DestElementDistributionManipulator.CreateNullElementDistribution()
+                            : mappingTransition.ElementDistribution.Second;
                     var childDestState = this.BuildProjectionOfSequence(
                         destAutomaton, destMappingState, srcSequence, srcSequenceIndex, destStateCache);
                     destState.AddTransition(destElementWeights, mappingTransition.Weight, childDestState, mappingTransition.Group);
@@ -481,11 +489,11 @@ namespace Microsoft.ML.Probabilistic.Distributions.Automata
         /// <param name="srcState">The currently traversed state of the automaton being projected.</param>
         /// <param name="destStateCache">The cache of the created projection states.</param>
         /// <returns>The state of the projection corresponding to the given mapping state and the position in the projected sequence.</returns>
-        private Automaton<TDestSequence, TDestElement, TDestElementDistribution, TDestSequenceManipulator, TDestAutomaton>.State BuildProjectionOfAutomaton(
+        private Automaton<TDestSequence, TDestElement, TDestElementDistribution, TDestSequenceManipulator, TDestElementDistributionManipulator, TDestAutomaton>.State BuildProjectionOfAutomaton(
             TDestAutomaton destAutomaton,
             PairListAutomaton.State mappingState,
-            Automaton<TSrcSequence, TSrcElement, TSrcElementDistribution, TSrcSequenceManipulator, TSrcAutomaton>.State srcState,
-            Dictionary<(int, int), Automaton<TDestSequence, TDestElement, TDestElementDistribution, TDestSequenceManipulator, TDestAutomaton>.State> destStateCache)
+            Automaton<TSrcSequence, TSrcElement, TSrcElementDistribution, TSrcSequenceManipulator, TSrcElementDistributionManipulator, TSrcAutomaton>.State srcState,
+            Dictionary<(int, int), Automaton<TDestSequence, TDestElement, TDestElementDistribution, TDestSequenceManipulator, TDestElementDistributionManipulator, TDestAutomaton>.State> destStateCache)
         {
             Debug.Assert(mappingState != null && srcState != null, "Valid states must be provided.");
             Debug.Assert(!ReferenceEquals(srcState.Owner, destAutomaton), "Cannot build a projection in place.");
@@ -495,7 +503,7 @@ namespace Microsoft.ML.Probabilistic.Distributions.Automata
 
             // State already exists, return its index
             var statePair = (mappingState.Index, srcState.Index);
-            Automaton<TDestSequence, TDestElement, TDestElementDistribution, TDestSequenceManipulator, TDestAutomaton>.State destState;
+            Automaton<TDestSequence, TDestElement, TDestElementDistribution, TDestSequenceManipulator, TDestElementDistributionManipulator, TDestAutomaton>.State destState;
             if (destStateCache.TryGetValue(statePair, out destState))
             {
                 return destState;
@@ -513,7 +521,10 @@ namespace Microsoft.ML.Probabilistic.Distributions.Automata
                 // Epsilon transition case
                 if (IsSrcEpsilon(mappingTransition))
                 {
-                    TDestElementDistribution destElementDistribution = mappingTransition.ElementDistribution == null ? null : mappingTransition.ElementDistribution.Second;
+                    TDestElementDistribution destElementDistribution =
+                        mappingTransition.ElementDistribution == null
+                            ? DestElementDistributionManipulator.CreateNullElementDistribution()
+                            : mappingTransition.ElementDistribution.Second;
                     var childDestState = this.BuildProjectionOfAutomaton(destAutomaton, childMappingState, srcState, destStateCache);
                     destState.AddTransition(destElementDistribution, mappingTransition.Weight, childDestState, mappingTransition.Group);
                     continue;
@@ -553,7 +564,7 @@ namespace Microsoft.ML.Probabilistic.Distributions.Automata
         /// Represents an automaton that maps lists of element pairs to real values. Such automata are used to represent transducers internally.
         /// </summary>
         protected class PairListAutomaton :
-            ListAutomaton<List<Pair<TSrcElement, TDestElement>>, Pair<TSrcElement, TDestElement>, TPairDistribution, PairListAutomaton>
+            ListAutomaton<List<Pair<TSrcElement, TDestElement>>, Pair<TSrcElement, TDestElement>, TPairDistribution, ReferenceDistributionManipulator<Pair<TSrcElement, TDestElement>, TPairDistribution>, PairListAutomaton>
         {
             /// <summary>
             /// Computes a set of outgoing transitions from a given state of the determinization result.

@@ -18,7 +18,7 @@ namespace Microsoft.ML.Probabilistic.Distributions.Automata
     /// Represents a weighted finite state automaton defined on <see cref="string"/>.
     /// </summary>
     [Serializable]
-    public class StringAutomaton : Automaton<string, char, DiscreteChar, StringManipulator, StringAutomaton>
+    public class StringAutomaton : Automaton<string, char, DiscreteChar, StringManipulator, DiscreteCharManipulator, StringAutomaton>
     {
         public StringAutomaton()
         {

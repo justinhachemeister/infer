@@ -20,11 +20,12 @@ namespace Microsoft.ML.Probabilistic.Distributions
     /// <typeparam name="TThis">The type of a concrete distribution class.</typeparam>
     [Serializable]
     [Quality(QualityBand.Experimental)]
-    public abstract class ListDistribution<TList, TElement, TElementDistribution, TThis> :
-        SequenceDistribution<TList, TElement, TElementDistribution, ListManipulator<TList, TElement>, ListAutomaton<TList, TElement, TElementDistribution>, TThis>
+    public abstract class ListDistribution<TList, TElement, TElementDistribution, TElementDistributionManipulator, TThis> :
+        SequenceDistribution<TList, TElement, TElementDistribution, ListManipulator<TList, TElement>, TElementDistributionManipulator, ListAutomaton<TList, TElement, TElementDistribution, TElementDistributionManipulator>, TThis>
         where TList : class, IList<TElement>, new()
         where TElementDistribution : class, IDistribution<TElement>, SettableToProduct<TElementDistribution>, SettableToWeightedSumExact<TElementDistribution>, CanGetLogAverageOf<TElementDistribution>, SettableToPartialUniform<TElementDistribution>, Sampleable<TElement>, new()
-        where TThis : ListDistribution<TList, TElement, TElementDistribution, TThis>, new()
+        where TElementDistributionManipulator : IDistributionManipulator<TElement, TElementDistribution>, new()
+        where TThis : ListDistribution<TList, TElement, TElementDistribution, TElementDistributionManipulator, TThis>, new()
     {
     }
 
@@ -36,10 +37,11 @@ namespace Microsoft.ML.Probabilistic.Distributions
     /// <typeparam name="TElementDistribution">The type of a distribution over list elements.</typeparam>
     [Serializable]
     [Quality(QualityBand.Experimental)]
-    public class ListDistribution<TList, TElement, TElementDistribution> :
-        ListDistribution<TList, TElement, TElementDistribution, ListDistribution<TList, TElement, TElementDistribution>>
+    public class ListDistribution<TList, TElement, TElementDistribution, TElementDistributionManipulator> :
+        ListDistribution<TList, TElement, TElementDistribution, TElementDistributionManipulator, ListDistribution<TList, TElement, TElementDistribution, TElementDistributionManipulator>>
         where TList : class, IList<TElement>, new()
         where TElementDistribution : class, IDistribution<TElement>, SettableToProduct<TElementDistribution>, SettableToWeightedSumExact<TElementDistribution>, CanGetLogAverageOf<TElementDistribution>, SettableToPartialUniform<TElementDistribution>, Sampleable<TElement>, new()
+        where TElementDistributionManipulator : IDistributionManipulator<TElement, TElementDistribution>, new()
     {
     }
 
@@ -50,9 +52,10 @@ namespace Microsoft.ML.Probabilistic.Distributions
     /// <typeparam name="TElementDistribution">The type of a distribution over list elements.</typeparam>
     [Serializable]
     [Quality(QualityBand.Experimental)]
-    public class ListDistribution<TElement, TElementDistribution> :
-        SequenceDistribution<List<TElement>, TElement, TElementDistribution, ListManipulator<List<TElement>, TElement>, ListAutomaton<TElement, TElementDistribution>, ListDistribution<TElement, TElementDistribution>>
+    public class ListDistribution<TElement, TElementDistribution, TElementDistributionManipulator> :
+        SequenceDistribution<List<TElement>, TElement, TElementDistribution, ListManipulator<List<TElement>, TElement>, TElementDistributionManipulator, ListAutomaton<TElement, TElementDistribution, TElementDistributionManipulator>, ListDistribution<TElement, TElementDistribution, TElementDistributionManipulator>>
         where TElementDistribution : class, IDistribution<TElement>, SettableToProduct<TElementDistribution>, SettableToWeightedSumExact<TElementDistribution>, CanGetLogAverageOf<TElementDistribution>, SettableToPartialUniform<TElementDistribution>, Sampleable<TElement>, new()
+        where TElementDistributionManipulator : IDistributionManipulator<TElement, TElementDistribution>, new()
     {
     }
 }

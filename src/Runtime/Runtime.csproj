@@ -6,7 +6,7 @@
     <AssemblyOriginatorKeyFile>..\..\Infer.snk</AssemblyOriginatorKeyFile>
     <AssemblyName>$(AssemblyNamePrefix)Microsoft.ML.Probabilistic</AssemblyName>
     <WarningLevel>4</WarningLevel>
-    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
     <WarningsAsErrors />
     <DefineConstants>TRACE;SUPPRESS_XMLDOC_WARNINGS, SUPPRESS_UNREACHABLE_CODE_WARNINGS</DefineConstants>
     <NoWarn>1591</NoWarn>
@@ -22,11 +22,13 @@
     <DebugType>full</DebugType>
     <DebugSymbols>true</DebugSymbols>
     <DefineConstants>$(DefineConstants);DEBUG</DefineConstants>
+    <LangVersion>default</LangVersion>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
+    <LangVersion>default</LangVersion>
   </PropertyGroup>
 
   <PropertyGroup>

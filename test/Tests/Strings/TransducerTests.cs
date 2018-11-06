@@ -26,8 +26,8 @@ namespace Microsoft.ML.Probabilistic.Tests
             StringAutomaton.MaxStateCount = 1200000; // Something big
             StringAutomaton bigAutomaton = StringAutomaton.Zero();
             bigAutomaton.AddStates(StringAutomaton.MaxStateCount - bigAutomaton.States.Count);
-            Func<DiscreteChar, Weight, Tuple<PairDistribution<char, DiscreteChar>, Weight>> transitionConverter =
-                (dist, weight) => Tuple.Create(PairDistribution<char, DiscreteChar>.FromFirstSecond(dist, dist), weight);
+            Func<DiscreteChar, Weight, Tuple<PairDistribution<char, DiscreteChar, DiscreteCharManipulator>, Weight>> transitionConverter =
+                (dist, weight) => Tuple.Create(PairDistribution<char, DiscreteChar, DiscreteCharManipulator>.FromFirstSecond(dist, dist), weight);
             
             Assert.Throws<AutomatonTooLargeException>(() => StringTransducer.FromAutomaton(bigAutomaton, transitionConverter));
 

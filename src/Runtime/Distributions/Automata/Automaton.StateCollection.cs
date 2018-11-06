@@ -11,11 +11,12 @@ namespace Microsoft.ML.Probabilistic.Distributions.Automata
     using Microsoft.ML.Probabilistic.Distributions;
     using Microsoft.ML.Probabilistic.Math;
 
-    public abstract partial class Automaton<TSequence, TElement, TElementDistribution, TSequenceManipulator, TThis>
+    public abstract partial class Automaton<TSequence, TElement, TElementDistribution, TSequenceManipulator, TElementDistributionManipulator, TThis>
         where TSequence : class, IEnumerable<TElement>
-        where TElementDistribution : class, IDistribution<TElement>, SettableToProduct<TElementDistribution>, SettableToWeightedSumExact<TElementDistribution>, CanGetLogAverageOf<TElementDistribution>, SettableToPartialUniform<TElementDistribution>, new()
+        where TElementDistribution : IDistribution<TElement>, SettableToProduct<TElementDistribution>, SettableToWeightedSumExact<TElementDistribution>, CanGetLogAverageOf<TElementDistribution>, SettableToPartialUniform<TElementDistribution>, new()
         where TSequenceManipulator : ISequenceManipulator<TSequence, TElement>, new()
-        where TThis : Automaton<TSequence, TElement, TElementDistribution, TSequenceManipulator, TThis>, new()
+        where TElementDistributionManipulator : IDistributionManipulator<TElement, TElementDistribution>, new()
+        where TThis : Automaton<TSequence, TElement, TElementDistribution, TSequenceManipulator, TElementDistributionManipulator, TThis>, new()
     {
         /// <summary>
         /// Represents a collection of automaton states for use in public APIs
@@ -28,7 +29,7 @@ namespace Microsoft.ML.Probabilistic.Distributions.Automata
             /// <summary>
             /// Owner automaton of all states in collection.
             /// </summary>
-            private readonly Automaton<TSequence, TElement, TElementDistribution, TSequenceManipulator, TThis> owner;
+            private readonly Automaton<TSequence, TElement, TElementDistribution, TSequenceManipulator, TElementDistributionManipulator, TThis> owner;
 
             /// <summary>
             /// Cached value of owner.statesData. Cached for performance reasons.
@@ -38,7 +39,7 @@ namespace Microsoft.ML.Probabilistic.Distributions.Automata
             /// <summary>
             /// Initializes instance of <see cref="StateCollection"/>.
             /// </summary>
-            internal StateCollection(Automaton<TSequence, TElement, TElementDistribution, TSequenceManipulator, TThis> owner, List<StateData> states)
+            internal StateCollection(Automaton<TSequence, TElement, TElementDistribution, TSequenceManipulator, TElementDistributionManipulator, TThis> owner, List<StateData> states)
             {
                 this.owner = owner;
                 this.statesData = owner.statesData;

@@ -29,7 +29,7 @@ namespace Microsoft.ML.Probabilistic.Distributions
     [Serializable]
     [DataContract]
     [Quality(QualityBand.Experimental)]
-    public abstract class SequenceDistribution<TSequence, TElement, TElementDistribution, TSequenceManipulator, TWeightFunction, TThis> :
+    public abstract class SequenceDistribution<TSequence, TElement, TElementDistribution, TSequenceManipulator, TElementDistributionManipulator, TWeightFunction, TThis> :
         IDistribution<TSequence>,
         SettableTo<TThis>,
         SettableToProduct<TThis>,
@@ -44,9 +44,10 @@ namespace Microsoft.ML.Probabilistic.Distributions
         Sampleable<TSequence>
         where TSequence : class, IEnumerable<TElement>
         where TSequenceManipulator : ISequenceManipulator<TSequence, TElement>, new()
-        where TElementDistribution : class, IDistribution<TElement>, SettableToProduct<TElementDistribution>, SettableToWeightedSumExact<TElementDistribution>, CanGetLogAverageOf<TElementDistribution>, SettableToPartialUniform<TElementDistribution>, Sampleable<TElement>, new()
-        where TWeightFunction : Automaton<TSequence, TElement, TElementDistribution, TSequenceManipulator, TWeightFunction>, new()
-        where TThis : SequenceDistribution<TSequence, TElement, TElementDistribution, TSequenceManipulator, TWeightFunction, TThis>, new()
+        where TElementDistribution : IDistribution<TElement>, SettableToProduct<TElementDistribution>, SettableToWeightedSumExact<TElementDistribution>, CanGetLogAverageOf<TElementDistribution>, SettableToPartialUniform<TElementDistribution>, Sampleable<TElement>, new()
+        where TElementDistributionManipulator : IDistributionManipulator<TElement, TElementDistribution>, new()
+        where TWeightFunction : Automaton<TSequence, TElement, TElementDistribution, TSequenceManipulator, TElementDistributionManipulator, TWeightFunction>, new()
+        where TThis : SequenceDistribution<TSequence, TElement, TElementDistribution, TSequenceManipulator, TElementDistributionManipulator, TWeightFunction, TThis>, new()
     {
         #region Fields & constants
 
@@ -54,6 +55,8 @@ namespace Microsoft.ML.Probabilistic.Distributions
         /// A sequence manipulator.
         /// </summary>
         private static readonly TSequenceManipulator SequenceManipulator = new TSequenceManipulator();
+
+        private static readonly TElementDistributionManipulator ElementDistributionManipulator = new TElementDistributionManipulator();
 
         /// <summary>
         /// A function mapping sequences to weights (non-normalized probabilities).
@@ -224,7 +227,7 @@ namespace Microsoft.ML.Probabilistic.Distributions
         /// </remarks>
         public static TThis SingleElement(TElementDistribution elementDistribution)
         {
-            var func = Automaton<TSequence, TElement, TElementDistribution, TSequenceManipulator, TWeightFunction>.Zero();
+            var func = Automaton<TSequence, TElement, TElementDistribution, TSequenceManipulator, TElementDistributionManipulator, TWeightFunction>.Zero();
             var end = func.Start.AddTransition(elementDistribution, Weight.One);
             end.SetEndWeight(Weight.One);
             return FromWorkspace(func);
@@ -265,7 +268,7 @@ namespace Microsoft.ML.Probabilistic.Distributions
 
             var probFunctions = enumerable.Select(d => skipNormalization ? d.GetWorkspaceOrPoint() : d.GetNormalizedWorkspaceOrPoint());
 
-            return FromWorkspace(Automaton<TSequence, TElement, TElementDistribution, TSequenceManipulator, TWeightFunction>.Sum(probFunctions));
+            return FromWorkspace(Automaton<TSequence, TElement, TElementDistribution, TSequenceManipulator, TElementDistributionManipulator, TWeightFunction>.Sum(probFunctions));
         }
 
         /// <summary>
@@ -301,7 +304,7 @@ namespace Microsoft.ML.Probabilistic.Distributions
         /// <returns>The created distribution.</returns>
         public static TThis OneOf(IEnumerable<KeyValuePair<TSequence, double>> sequenceProbPairs)
         {
-            return FromWorkspace(Automaton<TSequence, TElement, TElementDistribution, TSequenceManipulator, TWeightFunction>.FromValues(sequenceProbPairs));
+            return FromWorkspace(Automaton<TSequence, TElement, TElementDistribution, TSequenceManipulator, TElementDistributionManipulator, TWeightFunction>.FromValues(sequenceProbPairs));
         }
 
         /// <summary>
@@ -397,7 +400,7 @@ namespace Microsoft.ML.Probabilistic.Distributions
         /// <returns>The created distribution.</returns>
         public static TThis Repeat(TElementDistribution allowedElements, int minTimes = 1, int? maxTimes = null, DistributionKind uniformity = DistributionKind.UniformOverValue)
         {
-            Argument.CheckIfNotNull(allowedElements, "allowedElements");
+            Argument.CheckIfValid(!ElementDistributionManipulator.IsNull(allowedElements), nameof(allowedElements));
             Argument.CheckIfInRange(minTimes >= 0, "minTimes", "The minimum number of times to repeat must be non-negative.");
             Argument.CheckIfInRange(!maxTimes.HasValue || maxTimes.Value >= 0, "maxTimes", "The maximum number of times to repeat must be non-negative.");
             Argument.CheckIfValid(!maxTimes.HasValue || minTimes <= maxTimes.Value, "The minimum length cannot be greater than the maximum length.");
@@ -423,7 +426,7 @@ namespace Microsoft.ML.Probabilistic.Distributions
             var weight = uniformity == DistributionKind.UniformOverLengthThenValue
                 ? Weight.One
                 : Weight.FromLogValue(distLogNormalizer);
-            var func = Automaton<TSequence, TElement, TElementDistribution, TSequenceManipulator, TWeightFunction>.Zero();
+            var func = Automaton<TSequence, TElement, TElementDistribution, TSequenceManipulator, TElementDistributionManipulator, TWeightFunction>.Zero();
             var state = func.Start;
 
             int iterationBound = maxTimes.HasValue ? maxTimes.Value : minTimes;
@@ -484,7 +487,7 @@ namespace Microsoft.ML.Probabilistic.Distributions
             }
 
             double logNormalizer = -dist.GetLogAverageOf(dist);
-            return FromWorkspace(Automaton<TSequence, TElement, TElementDistribution, TSequenceManipulator, TWeightFunction>.Repeat(
+            return FromWorkspace(Automaton<TSequence, TElement, TElementDistribution, TSequenceManipulator, TElementDistributionManipulator, TWeightFunction>.Repeat(
                 dist.GetNormalizedWorkspaceOrPoint().ScaleLog(logNormalizer), minTimes, maxTimes));
         }
 
@@ -774,7 +777,7 @@ namespace Microsoft.ML.Probabilistic.Distributions
         /// </remarks>
         public void AppendInPlace(TElementDistribution elementDistribution, int group = 0)
         {
-            Argument.CheckIfNotNull(elementDistribution, "elementDistribution");
+            Argument.CheckIfValid(!ElementDistributionManipulator.IsNull(elementDistribution), nameof(elementDistribution));
             
             this.AppendInPlace(SingleElement(elementDistribution), group);
         }
@@ -894,7 +897,7 @@ namespace Microsoft.ML.Probabilistic.Distributions
         public TWeightFunction GetWorkspaceOrPoint()
         {
             return this.IsPointMass
-                ? Automaton<TSequence, TElement, TElementDistribution, TSequenceManipulator, TWeightFunction>.ConstantOn(1.0, this.point)
+                ? Automaton<TSequence, TElement, TElementDistribution, TSequenceManipulator, TElementDistributionManipulator, TWeightFunction>.ConstantOn(1.0, this.point)
                 : this.sequenceToWeight;
         }
 
@@ -1022,7 +1025,7 @@ namespace Microsoft.ML.Probabilistic.Distributions
         public string ToString(ISequenceDistributionFormat format)
         {
             Argument.CheckIfNotNull(format, "format");
-            return format.ConvertToString<TSequence, TElement, TElementDistribution, TSequenceManipulator, TWeightFunction, TThis>((TThis)this);
+            return format.ConvertToString<TSequence, TElement, TElementDistribution, TSequenceManipulator, TElementDistributionManipulator, TWeightFunction, TThis>((TThis)this);
         }
 
         #endregion
@@ -1085,7 +1088,7 @@ namespace Microsoft.ML.Probabilistic.Distributions
         public void SetToZero()
         {
             this.point = null;
-            this.sequenceToWeight = Automaton<TSequence, TElement, TElementDistribution, TSequenceManipulator, TWeightFunction>.Zero();
+            this.sequenceToWeight = Automaton<TSequence, TElement, TElementDistribution, TSequenceManipulator, TElementDistributionManipulator, TWeightFunction>.Zero();
             this.isNormalized = true;
         }
 
@@ -1265,7 +1268,7 @@ namespace Microsoft.ML.Probabilistic.Distributions
             logWeight2 -= weightSum;
 
             this.SetWorkspace(
-                Automaton<TSequence, TElement, TElementDistribution, TSequenceManipulator, TWeightFunction>.WeightedSumLog(
+                Automaton<TSequence, TElement, TElementDistribution, TSequenceManipulator, TElementDistributionManipulator, TWeightFunction>.WeightedSumLog(
                     logWeight1,
                     dist1.GetNormalizedWorkspaceOrPoint(),
                     logWeight2,
@@ -1337,7 +1340,7 @@ namespace Microsoft.ML.Probabilistic.Distributions
                 return double.PositiveInfinity;
             }
             
-            return Math.Exp(Automaton<TSequence, TElement, TElementDistribution, TSequenceManipulator, TWeightFunction>.GetLogSimilarity(
+            return Math.Exp(Automaton<TSequence, TElement, TElementDistribution, TSequenceManipulator, TElementDistributionManipulator, TWeightFunction>.GetLogSimilarity(
                 this.GetNormalizedWorkspaceOrPoint(), thatDistribution.GetNormalizedWorkspaceOrPoint()));
         }
 
@@ -1421,7 +1424,7 @@ namespace Microsoft.ML.Probabilistic.Distributions
             {
                 var weightFunction = this.GetWorkspaceOrPoint();
                 var theConverger =
-                    Automaton<TSequence, TElement, TElementDistribution, TSequenceManipulator, TWeightFunction>.GetConverger(weightFunction);
+                    Automaton<TSequence, TElement, TElementDistribution, TSequenceManipulator, TElementDistributionManipulator, TWeightFunction>.GetConverger(weightFunction);
                 var properWeightFunction = weightFunction.Product(theConverger);
                 properDist = this.Clone();
                 properDist.SetWeightFunction(properWeightFunction);
@@ -1654,9 +1657,9 @@ namespace Microsoft.ML.Probabilistic.Distributions
         /// <param name="uniformLogProb">The logarithm of the probability assigned to every allowed sequence.</param>
         protected void SetToUniformOf(TElementDistribution allowedElements, double uniformLogProb)
         {
-            Argument.CheckIfNotNull(allowedElements, "allowedElements");
+            Argument.CheckIfValid(!ElementDistributionManipulator.IsNull(allowedElements), nameof(allowedElements));
 
-            this.SetWorkspace(Automaton<TSequence, TElement, TElementDistribution, TSequenceManipulator, TWeightFunction>.ConstantLog(uniformLogProb, allowedElements), false);
+            this.SetWorkspace(Automaton<TSequence, TElement, TElementDistribution, TSequenceManipulator, TElementDistributionManipulator, TWeightFunction>.ConstantLog(uniformLogProb, allowedElements), false);
         }
 
         #endregion

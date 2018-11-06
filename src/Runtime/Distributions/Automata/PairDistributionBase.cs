@@ -29,12 +29,17 @@ namespace Microsoft.ML.Probabilistic.Distributions.Automata
     /// setting pair distributions to <see langword="null"/>.
     /// </p>
     /// </remarks>
-    public abstract class PairDistributionBase<TElement1, TElementDistribution1, TElement2, TElementDistribution2, TThis> :
+    public abstract class PairDistributionBase<TElement1, TElementDistribution1, TElementDistributionManipulator1, TElement2, TElementDistribution2, TElementDistributionManipulator2, TThis> :
         IDistribution<Pair<TElement1, TElement2>>, CanGetLogAverageOf<TThis>, SettableToProduct<TThis>, SettableToWeightedSumExact<TThis>, SettableToPartialUniform<TThis>
-        where TElementDistribution1 : class, IDistribution<TElement1>, CanGetLogAverageOf<TElementDistribution1>, SettableToProduct<TElementDistribution1>, SettableToPartialUniform<TElementDistribution1>, new()
-        where TElementDistribution2 : class, IDistribution<TElement2>, CanGetLogAverageOf<TElementDistribution2>, SettableToProduct<TElementDistribution2>, SettableToPartialUniform<TElementDistribution2>, new()
-        where TThis : PairDistributionBase<TElement1, TElementDistribution1, TElement2, TElementDistribution2, TThis>, new()
+        where TElementDistribution1 : IDistribution<TElement1>, CanGetLogAverageOf<TElementDistribution1>, SettableToProduct<TElementDistribution1>, SettableToPartialUniform<TElementDistribution1>, new()
+        where TElementDistribution2 : IDistribution<TElement2>, CanGetLogAverageOf<TElementDistribution2>, SettableToProduct<TElementDistribution2>, SettableToPartialUniform<TElementDistribution2>, new()
+        where TElementDistributionManipulator1 : IDistributionManipulator<TElement1, TElementDistribution1>, new()
+        where TElementDistributionManipulator2 : IDistributionManipulator<TElement2, TElementDistribution2>, new()
+        where TThis : PairDistributionBase<TElement1, TElementDistribution1, TElementDistributionManipulator1, TElement2, TElementDistribution2, TElementDistributionManipulator2, TThis>, new()
     {
+        protected static readonly TElementDistributionManipulator1 ElementDistributionManipulator1 = new TElementDistributionManipulator1();
+        protected static readonly TElementDistributionManipulator2 ElementDistributionManipulator2 = new TElementDistributionManipulator2();
+
         /// <summary>
         /// Gets or sets the marginal distribution over the first element in a pair.
         /// </summary>
@@ -98,7 +103,7 @@ namespace Microsoft.ML.Probabilistic.Distributions.Automata
                 return null;
             }
 
-            return new TThis { First = first, Second = null };
+            return new TThis { First = first, Second = ElementDistributionManipulator2.CreateNullElementDistribution() };
         }
 
         /// <summary>
@@ -113,7 +118,7 @@ namespace Microsoft.ML.Probabilistic.Distributions.Automata
                 return null;
             }
 
-            return new TThis { First = null, Second = second };
+            return new TThis { First = ElementDistributionManipulator1.CreateNullElementDistribution(), Second = second };
         }
 
         /// <summary>
@@ -230,8 +235,12 @@ namespace Microsoft.ML.Probabilistic.Distributions.Automata
         {
             return new TThis
             {
-                First = this.First == null ? null : (TElementDistribution1)this.First.Clone(),
-                Second = this.Second == null ? null : (TElementDistribution2)this.Second.Clone()
+                First = ElementDistributionManipulator1.IsNull(this.First)
+                    ? ElementDistributionManipulator1.CreateNullElementDistribution()
+                    : (TElementDistribution1)this.First.Clone(),
+                Second = ElementDistributionManipulator2.IsNull(this.Second)
+                    ? ElementDistributionManipulator2.CreateNullElementDistribution()
+                    : (TElementDistribution2)this.Second.Clone()
             };
         }
 
@@ -327,8 +336,12 @@ namespace Microsoft.ML.Probabilistic.Distributions.Automata
         {
             Argument.CheckIfNotNull(distribution, "distribution");
 
-            this.First = distribution.First != null ? Distribution.CreatePartialUniform(distribution.First) : null;
-            this.Second = distribution.Second != null ? Distribution.CreatePartialUniform(distribution.Second) : null;
+            this.First = ElementDistributionManipulator1.IsNull(this.First)
+                ? ElementDistributionManipulator1.CreateNullElementDistribution()
+                : Distribution.CreatePartialUniform(distribution.First);
+            this.Second = ElementDistributionManipulator2.IsNull(this.Second)
+                ? ElementDistributionManipulator2.CreateNullElementDistribution()
+                : Distribution.CreatePartialUniform(distribution.Second);
         }
 
         /// <summary>

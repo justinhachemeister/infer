@@ -80,7 +80,7 @@ namespace Microsoft.ML.Probabilistic.Tests
         /// <param name="automaton">The automaton.</param>
         /// <param name="trueLogValue">The expected logarithm of the function value.</param>
         /// <param name="strings">The strings to test.</param>
-        public static void TestValue(ListAutomaton<string, StringDistribution> automaton, double trueValue, params List<string>[] strings)
+        public static void TestValue(ListAutomaton<string, StringDistribution, ReferenceDistributionManipulator<string, StringDistribution>> automaton, double trueValue, params List<string>[] strings)
         {
             foreach (var str in strings)
             {
