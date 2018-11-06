@@ -858,7 +858,7 @@ namespace Microsoft.ML.Probabilistic.Tests
                 StringAutomaton.FromStates(
                     new[]
         {
-                            new StringAutomaton.State(0, new[] { new StringAutomaton.Transition(null, Weight.One, 2) }, Weight.One),
+                            new StringAutomaton.State(0, new[] { new StringAutomaton.Transition(DiscreteChar.Null(), Weight.One, 2) }, Weight.One),
                             new StringAutomaton.State(1, new StringAutomaton.Transition[0], Weight.One)
                         },
                     new StringAutomaton.State(1, new StringAutomaton.Transition[0], Weight.One)));

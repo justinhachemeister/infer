@@ -26,8 +26,8 @@ namespace Microsoft.ML.Probabilistic.Distributions.Automata
     /// <typeparam name="TThis">The type of a concrete transducer class.</typeparam>
     public abstract class Transducer<TSrcSequence, TSrcElement, TSrcElementDistribution, TSrcSequenceManipulator, TSrcAutomaton, TDestSequence, TDestElement, TDestElementDistribution, TDestSequenceManipulator, TDestAutomaton, TThis> :
         TransducerBase<TSrcSequence, TSrcElement, TSrcElementDistribution, TSrcSequenceManipulator, TSrcAutomaton, TDestSequence, TDestElement, TDestElementDistribution, TDestSequenceManipulator, TDestAutomaton, PairDistribution<TSrcElement, TSrcElementDistribution, TDestElement, TDestElementDistribution>, TThis>
-        where TSrcElementDistribution : class, IDistribution<TSrcElement>, CanGetLogAverageOf<TSrcElementDistribution>, SettableToProduct<TSrcElementDistribution>, SettableToWeightedSumExact<TSrcElementDistribution>, SettableToPartialUniform<TSrcElementDistribution>, Sampleable<TSrcElement>, new()
-        where TDestElementDistribution : class, IDistribution<TDestElement>, CanGetLogAverageOf<TDestElementDistribution>, SettableToProduct<TDestElementDistribution>, SettableToWeightedSumExact<TDestElementDistribution>, SettableToPartialUniform<TDestElementDistribution>, Sampleable<TDestElement>, new()
+        where TSrcElementDistribution : IDistribution<TSrcElement>, CanGetLogAverageOf<TSrcElementDistribution>, SettableToProduct<TSrcElementDistribution>, SettableToWeightedSumExact<TSrcElementDistribution>, SettableToPartialUniform<TSrcElementDistribution>, Sampleable<TSrcElement>, new()
+        where TDestElementDistribution : IDistribution<TDestElement>, CanGetLogAverageOf<TDestElementDistribution>, SettableToProduct<TDestElementDistribution>, SettableToWeightedSumExact<TDestElementDistribution>, SettableToPartialUniform<TDestElementDistribution>, Sampleable<TDestElement>, new()
         where TSrcSequence : class, IEnumerable<TSrcElement>
         where TDestSequence : class, IEnumerable<TDestElement>
         where TSrcSequenceManipulator : ISequenceManipulator<TSrcSequence, TSrcElement>, new()
@@ -49,7 +49,7 @@ namespace Microsoft.ML.Probabilistic.Distributions.Automata
 
             var result = new TThat();
             result.sequencePairToWeight.SetToFunction(
-                transducer.sequencePairToWeight, (dist, weight, group) => Tuple.Create(dist == null ? null : dist.Transpose(), weight));
+                transducer.sequencePairToWeight, (dist, weight, group) => Tuple.Create(dist?.Transpose(), weight));
             return result;
         }
     }
@@ -65,7 +65,7 @@ namespace Microsoft.ML.Probabilistic.Distributions.Automata
     /// <typeparam name="TThis">The type of a concrete transducer class.</typeparam>
     public abstract class Transducer<TSequence, TElement, TElementDistribution, TSequenceManipulator, TAutomaton, TThis> :
         TransducerBase<TSequence, TElement, TElementDistribution, TSequenceManipulator, TAutomaton, TSequence, TElement, TElementDistribution, TSequenceManipulator, TAutomaton, PairDistribution<TElement, TElementDistribution>, TThis>
-        where TElementDistribution : class, IDistribution<TElement>, CanGetLogAverageOf<TElementDistribution>, SettableToProduct<TElementDistribution>, SettableToWeightedSumExact<TElementDistribution>, SettableToPartialUniform<TElementDistribution>, Sampleable<TElement>, new()
+        where TElementDistribution : IDistribution<TElement>, CanGetLogAverageOf<TElementDistribution>, SettableToProduct<TElementDistribution>, SettableToWeightedSumExact<TElementDistribution>, SettableToPartialUniform<TElementDistribution>, Sampleable<TElement>, new()
         where TSequence : class, IEnumerable<TElement>
         where TSequenceManipulator : ISequenceManipulator<TSequence, TElement>, new()
         where TAutomaton : Automaton<TSequence, TElement, TElementDistribution, TSequenceManipulator, TAutomaton>, new()
@@ -117,7 +117,7 @@ namespace Microsoft.ML.Probabilistic.Distributions.Automata
                 automaton,
                 (transitionElementDistribution, transitionWeight, transitionGroup) =>
                     {
-                        if (transitionElementDistribution == null)
+                        if (SrcElementDistributionManipulator.IsNull(transitionElementDistribution))
                         {
 
                             return Tuple.Create<PairDistribution<TElement, TElementDistribution>, Weight>(null, transitionWeight);

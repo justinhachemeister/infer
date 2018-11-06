@@ -19,7 +19,7 @@ namespace Microsoft.ML.Probabilistic.Distributions.Automata
 
     public abstract partial class Automaton<TSequence, TElement, TElementDistribution, TSequenceManipulator, TThis>
         where TSequence : class, IEnumerable<TElement>
-        where TElementDistribution : class, IDistribution<TElement>, SettableToProduct<TElementDistribution>, SettableToWeightedSumExact<TElementDistribution>, CanGetLogAverageOf<TElementDistribution>, SettableToPartialUniform<TElementDistribution>, new()
+        where TElementDistribution : IDistribution<TElement>, SettableToProduct<TElementDistribution>, SettableToWeightedSumExact<TElementDistribution>, CanGetLogAverageOf<TElementDistribution>, SettableToPartialUniform<TElementDistribution>, new()
         where TSequenceManipulator : ISequenceManipulator<TSequence, TElement>, new()
         where TThis : Automaton<TSequence, TElement, TElementDistribution, TSequenceManipulator, TThis>, new()
     {
@@ -199,7 +199,7 @@ namespace Microsoft.ML.Probabilistic.Distributions.Automata
             /// <returns>The destination state of the added transition.</returns>
             public State AddEpsilonTransition(Weight weight, State destinationState = default(State), int group = 0)
             {
-                return this.AddTransition(null, weight, destinationState, group);
+                return this.AddTransition(ElementDistributionManipulator.CreateNullDistribution(), weight, destinationState, group);
             }
 
             /// <summary>

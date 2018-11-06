@@ -42,7 +42,7 @@ namespace Microsoft.ML.Probabilistic.Distributions
         {
             return StringDistribution.PointMass(str);
         }
-        
+
         /// <summary>
         /// Creates a distribution which puts all mass on a string containing only a given character.
         /// This method is an alias for <see cref="SequenceDistribution{TSequence, TElement, TElementDistribution, TSequenceManipulator, TWeightFunction, TThis}.SingleElement(TElement)"/>.

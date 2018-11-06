@@ -48,6 +48,11 @@ namespace Microsoft.ML.Probabilistic.Serialization
         internal MemberInfo[] paramMembers { get; }
 
         /// <summary>
+        /// Custom priority of this constructor.
+        /// </summary>
+        internal int? priority;
+
+        /// <summary>
         /// The name of a boolean property or method on the object instance which
         /// indicates when this construction method should be used.
         /// </summary>
@@ -58,6 +63,21 @@ namespace Microsoft.ML.Probabilistic.Serialization
         /// a state, as indicated by a bool property or method e.g. IsUniform().
         /// </remarks>
         public string UseWhen { get; set; }
+
+        /// <summary>
+        /// Priority of this constructor. For quoting operation compiler tries
+        /// to use constructors in the order of decreasing priority.
+        /// </summary>
+        /// <remarks>
+        /// If not explicitly set then value is defined by the presence of
+        /// <see cref="UseWhen"/> property. Constructors with non-null <see cref="UseWhen"/>
+        /// have priority value of 1, others have 0 priority.
+        /// </remarks>
+        public int Priority
+        {
+            get => this.priority ?? (this.UseWhen == null ? 0 : 1);
+            set => this.priority = value;
+        }
 
         /// <summary>
         /// Gets the value of the constructor parameter at the given index needed to
@@ -190,11 +210,10 @@ namespace Microsoft.ML.Probabilistic.Serialization
         // Order so that the UseWhen==null case comes last.
         public int CompareTo(object obj)
         {
-            ConstructionAttribute ca = obj as ConstructionAttribute;
-            if (ca == null) return -1;
-            if ((UseWhen == null) && (ca.UseWhen != null)) return 1;
-            if ((UseWhen != null) && (ca.UseWhen == null)) return -1;
-            return 0;
+            return obj is ConstructionAttribute that
+                ? that.Priority - this.Priority
+                : throw new InvalidOperationException(
+                    $"{nameof(ConstructionAttribute)} can be compared only to another instance of {nameof(ConstructionAttribute)}");
         }
     }
 

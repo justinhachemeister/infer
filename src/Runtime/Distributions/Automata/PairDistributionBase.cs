@@ -31,10 +31,22 @@ namespace Microsoft.ML.Probabilistic.Distributions.Automata
     /// </remarks>
     public abstract class PairDistributionBase<TElement1, TElementDistribution1, TElement2, TElementDistribution2, TThis> :
         IDistribution<Pair<TElement1, TElement2>>, CanGetLogAverageOf<TThis>, SettableToProduct<TThis>, SettableToWeightedSumExact<TThis>, SettableToPartialUniform<TThis>
-        where TElementDistribution1 : class, IDistribution<TElement1>, CanGetLogAverageOf<TElementDistribution1>, SettableToProduct<TElementDistribution1>, SettableToPartialUniform<TElementDistribution1>, new()
-        where TElementDistribution2 : class, IDistribution<TElement2>, CanGetLogAverageOf<TElementDistribution2>, SettableToProduct<TElementDistribution2>, SettableToPartialUniform<TElementDistribution2>, new()
+        where TElementDistribution1 : IDistribution<TElement1>, CanGetLogAverageOf<TElementDistribution1>, SettableToProduct<TElementDistribution1>, SettableToPartialUniform<TElementDistribution1>, new()
+        where TElementDistribution2 : IDistribution<TElement2>, CanGetLogAverageOf<TElementDistribution2>, SettableToProduct<TElementDistribution2>, SettableToPartialUniform<TElementDistribution2>, new()
         where TThis : PairDistributionBase<TElement1, TElementDistribution1, TElement2, TElementDistribution2, TThis>, new()
     {
+        /// <summary>
+        /// Distribution manipulator for first distribution.
+        /// </summary>
+        protected static readonly IDistributionManipulator<TElement1, TElementDistribution1> ElementDistributionManipulator1 =
+            DistributionManipulator<TElement1, TElementDistribution1>.Instance;
+
+        /// <summary>
+        /// Distribution manipulator for second distribution.
+        /// </summary>
+        protected static readonly IDistributionManipulator<TElement2, TElementDistribution2> ElementDistributionManipulator2 =
+            DistributionManipulator<TElement2, TElementDistribution2>.Instance; 
+
         /// <summary>
         /// Gets or sets the marginal distribution over the first element in a pair.
         /// </summary>
@@ -48,10 +60,9 @@ namespace Microsoft.ML.Probabilistic.Distributions.Automata
         /// <summary>
         /// Gets a value indicating whether the current distribution represents a point mass.
         /// </summary>
-        public bool IsPointMass
-        {
-            get { return this.First != null && this.First.IsPointMass && this.Second != null && this.Second.IsPointMass; }
-        }
+        public bool IsPointMass =>
+            !ElementDistributionManipulator1.IsNull(this.First) && this.First.IsPointMass &&
+            !ElementDistributionManipulator2.IsNull(this.Second) && this.Second.IsPointMass;
 
         /// <summary>
         /// Gets or sets the point mass represented by the distribution.
@@ -70,14 +81,14 @@ namespace Microsoft.ML.Probabilistic.Distributions.Automata
 
             set
             {
-                if (this.First == null)
+                if (ElementDistributionManipulator1.IsNull(this.First))
                 {
                     this.First = new TElementDistribution1();
                 }
 
                 this.First.Point = value.First;
 
-                if (this.Second == null)
+                if (ElementDistributionManipulator2.IsNull(this.Second))
                 {
                     this.Second = new TElementDistribution2();
                 }
@@ -93,12 +104,10 @@ namespace Microsoft.ML.Probabilistic.Distributions.Automata
         /// <returns>The created distribution.</returns>
         public static TThis FromFirst(TElementDistribution1 first)
         {
-            if (first == null)
-            {
-                return null;
-            }
-
-            return new TThis { First = first, Second = null };
+            return
+                ElementDistributionManipulator1.IsNull(first)
+                    ? null
+                    : new TThis { First = first, Second = ElementDistributionManipulator2.CreateNullDistribution() };
         }
 
         /// <summary>
@@ -108,12 +117,10 @@ namespace Microsoft.ML.Probabilistic.Distributions.Automata
         /// <returns>The created distribution.</returns>
         public static TThis FromSecond(TElementDistribution2 second)
         {
-            if (second == null)
-            {
-                return null;
-            }
-
-            return new TThis { First = null, Second = second };
+            return
+                ElementDistributionManipulator2.IsNull(second)
+                    ? null
+                    : new TThis { First = ElementDistributionManipulator1.CreateNullDistribution(), Second = second };
         }
 
         /// <summary>
@@ -129,7 +136,7 @@ namespace Microsoft.ML.Probabilistic.Distributions.Automata
         public static TThis FromFirstSecond(TElementDistribution1 first, TElementDistribution2 second)
         {
             Argument.CheckIfValid(
-                first != null || second != null,
+                ElementDistributionManipulator1.IsNull(first) || ElementDistributionManipulator2.IsNull(second),
                 "At least one of the distributions must not be null.");
             
             return new TThis { First = first, Second = second };
@@ -144,7 +151,7 @@ namespace Microsoft.ML.Probabilistic.Distributions.Automata
         /// <returns>The logarithm of the scale for the projection result.</returns>
         public virtual double ProjectFirst(TElement1 first, out TElementDistribution2 result)
         {
-            if (this.First == null)
+            if (ElementDistributionManipulator1.IsNull(this.First))
             {
                 throw new InvalidOperationException("Cannot project on an epsilon transition.");
             }
@@ -163,7 +170,7 @@ namespace Microsoft.ML.Probabilistic.Distributions.Automata
         /// <returns>The logarithm of the scale for the projection result.</returns>
         public virtual double ProjectFirst(TElementDistribution1 first, out TElementDistribution2 result)
         {
-            if (this.First == null)
+            if (ElementDistributionManipulator1.IsNull(this.First))
             {
                 throw new InvalidOperationException("Cannot project on an epsilon transition.");
             }
@@ -187,12 +194,12 @@ namespace Microsoft.ML.Probabilistic.Distributions.Automata
         /// </summary>
         public virtual void SetToUniform()
         {
-            if (this.First == null)
+            if (ElementDistributionManipulator1.IsNull(this.First))
             {
                 this.First = new TElementDistribution1();
             }
 
-            if (this.Second == null)
+            if (ElementDistributionManipulator2.IsNull(this.Second))
             {
                 this.Second = new TElementDistribution2();
             }
@@ -209,12 +216,12 @@ namespace Microsoft.ML.Probabilistic.Distributions.Automata
         /// </returns>
         public override string ToString()
         {
-            if (this.First == null)
+            if (ElementDistributionManipulator1.IsNull(this.First))
             {
                 return ">" + this.Second;
             }
 
-            if (this.Second == null)
+            if (ElementDistributionManipulator2.IsNull(this.Second))
             {
                 return this.First + ">";
             }
@@ -230,8 +237,12 @@ namespace Microsoft.ML.Probabilistic.Distributions.Automata
         {
             return new TThis
             {
-                First = this.First == null ? null : (TElementDistribution1)this.First.Clone(),
-                Second = this.Second == null ? null : (TElementDistribution2)this.Second.Clone()
+                First = ElementDistributionManipulator1.IsNull(this.First)
+                    ? ElementDistributionManipulator1.CreateNullDistribution()
+                    : (TElementDistribution1)this.First.Clone(),
+                Second = ElementDistributionManipulator2.IsNull(this.Second)
+                    ? ElementDistributionManipulator2.CreateNullDistribution()
+                    : (TElementDistribution2)this.Second.Clone()
             };
         }
 
@@ -266,20 +277,20 @@ namespace Microsoft.ML.Probabilistic.Distributions.Automata
         public virtual double GetLogAverageOf(TThis that)
         {
             Argument.CheckIfValid(
-                !(this.First == null ^ that.First == null),
+                ElementDistributionManipulator1.IsNull(this.First) == ElementDistributionManipulator1.IsNull(that.First),
                 "The first element distribution must be either present or absent in both the argument and the current distribution.");
             Argument.CheckIfValid(
-                !(this.Second == null ^ that.Second == null),
+                ElementDistributionManipulator2.IsNull(this.Second) == ElementDistributionManipulator2.IsNull(that.Second),
                 "The first element distribution must be either present or absent in both the argument and the current distribution.");
             
             double result = 0;
 
-            if (this.First != null)
+            if (!ElementDistributionManipulator1.IsNull(this.First))
             {
                 result += this.First.GetLogAverageOf(that.First);
             }
 
-            if (this.Second != null)
+            if (!ElementDistributionManipulator2.IsNull(this.Second))
             {
                 result += this.Second.GetLogAverageOf(that.Second);
             }
@@ -327,8 +338,12 @@ namespace Microsoft.ML.Probabilistic.Distributions.Automata
         {
             Argument.CheckIfNotNull(distribution, "distribution");
 
-            this.First = distribution.First != null ? Distribution.CreatePartialUniform(distribution.First) : null;
-            this.Second = distribution.Second != null ? Distribution.CreatePartialUniform(distribution.Second) : null;
+            this.First = ElementDistributionManipulator1.IsNull(this.First)
+                ? ElementDistributionManipulator1.CreateNullDistribution()
+                : Distribution.CreatePartialUniform(distribution.First);
+            this.Second = ElementDistributionManipulator2.IsNull(this.Second)
+                ? ElementDistributionManipulator2.CreateNullDistribution()
+                : Distribution.CreatePartialUniform(distribution.Second);
         }
 
         /// <summary>
@@ -338,8 +353,8 @@ namespace Microsoft.ML.Probabilistic.Distributions.Automata
         public virtual bool IsPartialUniform()
         {
             return
-                (this.First == null || this.First.IsPartialUniform()) &&
-                (this.Second == null || this.Second.IsPartialUniform());
+                (ElementDistributionManipulator1.IsNull(this.First) || this.First.IsPartialUniform()) &&
+                (ElementDistributionManipulator2.IsNull(this.Second) || this.Second.IsPartialUniform());
         }
     }
 }

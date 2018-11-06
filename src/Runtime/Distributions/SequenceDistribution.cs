@@ -44,7 +44,7 @@ namespace Microsoft.ML.Probabilistic.Distributions
         Sampleable<TSequence>
         where TSequence : class, IEnumerable<TElement>
         where TSequenceManipulator : ISequenceManipulator<TSequence, TElement>, new()
-        where TElementDistribution : class, IDistribution<TElement>, SettableToProduct<TElementDistribution>, SettableToWeightedSumExact<TElementDistribution>, CanGetLogAverageOf<TElementDistribution>, SettableToPartialUniform<TElementDistribution>, Sampleable<TElement>, new()
+        where TElementDistribution : IDistribution<TElement>, SettableToProduct<TElementDistribution>, SettableToWeightedSumExact<TElementDistribution>, CanGetLogAverageOf<TElementDistribution>, SettableToPartialUniform<TElementDistribution>, Sampleable<TElement>, new()
         where TWeightFunction : Automaton<TSequence, TElement, TElementDistribution, TSequenceManipulator, TWeightFunction>, new()
         where TThis : SequenceDistribution<TSequence, TElement, TElementDistribution, TSequenceManipulator, TWeightFunction, TThis>, new()
     {
@@ -54,6 +54,12 @@ namespace Microsoft.ML.Probabilistic.Distributions
         /// A sequence manipulator.
         /// </summary>
         private static readonly TSequenceManipulator SequenceManipulator = new TSequenceManipulator();
+
+        /// <summary>
+        /// Distribution manipulator for TElementDistribution.
+        /// </summary>
+        private static readonly IDistributionManipulator<TElement, TElementDistribution> ElementDistributionManipulator
+            = DistributionManipulator<TElement, TElementDistribution>.Instance;
 
         /// <summary>
         /// A function mapping sequences to weights (non-normalized probabilities).
@@ -397,7 +403,7 @@ namespace Microsoft.ML.Probabilistic.Distributions
         /// <returns>The created distribution.</returns>
         public static TThis Repeat(TElementDistribution allowedElements, int minTimes = 1, int? maxTimes = null, DistributionKind uniformity = DistributionKind.UniformOverValue)
         {
-            Argument.CheckIfNotNull(allowedElements, "allowedElements");
+            Argument.CheckIfValid(!ElementDistributionManipulator.IsNull(allowedElements), nameof(allowedElements));
             Argument.CheckIfInRange(minTimes >= 0, "minTimes", "The minimum number of times to repeat must be non-negative.");
             Argument.CheckIfInRange(!maxTimes.HasValue || maxTimes.Value >= 0, "maxTimes", "The maximum number of times to repeat must be non-negative.");
             Argument.CheckIfValid(!maxTimes.HasValue || minTimes <= maxTimes.Value, "The minimum length cannot be greater than the maximum length.");
@@ -774,7 +780,7 @@ namespace Microsoft.ML.Probabilistic.Distributions
         /// </remarks>
         public void AppendInPlace(TElementDistribution elementDistribution, int group = 0)
         {
-            Argument.CheckIfNotNull(elementDistribution, "elementDistribution");
+            Argument.CheckIfValid(!ElementDistributionManipulator.IsNull(elementDistribution), nameof(elementDistribution));
             
             this.AppendInPlace(SingleElement(elementDistribution), group);
         }
@@ -1654,7 +1660,7 @@ namespace Microsoft.ML.Probabilistic.Distributions
         /// <param name="uniformLogProb">The logarithm of the probability assigned to every allowed sequence.</param>
         protected void SetToUniformOf(TElementDistribution allowedElements, double uniformLogProb)
         {
-            Argument.CheckIfNotNull(allowedElements, "allowedElements");
+            Argument.CheckIfValid(!ElementDistributionManipulator.IsNull(allowedElements), nameof(allowedElements));
 
             this.SetWorkspace(Automaton<TSequence, TElement, TElementDistribution, TSequenceManipulator, TWeightFunction>.ConstantLog(uniformLogProb, allowedElements), false);
         }

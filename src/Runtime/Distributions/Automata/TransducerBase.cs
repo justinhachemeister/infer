@@ -28,8 +28,8 @@ namespace Microsoft.ML.Probabilistic.Distributions.Automata
     /// <typeparam name="TPairDistribution">The type of a distribution over pairs of <typeparamref name="TSrcElement"/> and <typeparamref name="TDestElement"/>.</typeparam>
     /// <typeparam name="TThis">The type of a concrete transducer class.</typeparam>
     public abstract class TransducerBase<TSrcSequence, TSrcElement, TSrcElementDistribution, TSrcSequenceManipulator, TSrcAutomaton, TDestSequence, TDestElement, TDestElementDistribution, TDestSequenceManipulator, TDestAutomaton, TPairDistribution, TThis>
-        where TSrcElementDistribution : class, IDistribution<TSrcElement>, CanGetLogAverageOf<TSrcElementDistribution>, SettableToProduct<TSrcElementDistribution>, SettableToWeightedSumExact<TSrcElementDistribution>, SettableToPartialUniform<TSrcElementDistribution>, Sampleable<TSrcElement>, new()
-        where TDestElementDistribution : class, IDistribution<TDestElement>, CanGetLogAverageOf<TDestElementDistribution>, SettableToProduct<TDestElementDistribution>, SettableToWeightedSumExact<TDestElementDistribution>, SettableToPartialUniform<TDestElementDistribution>, Sampleable<TDestElement>, new()
+        where TSrcElementDistribution : IDistribution<TSrcElement>, CanGetLogAverageOf<TSrcElementDistribution>, SettableToProduct<TSrcElementDistribution>, SettableToWeightedSumExact<TSrcElementDistribution>, SettableToPartialUniform<TSrcElementDistribution>, Sampleable<TSrcElement>, new()
+        where TDestElementDistribution : IDistribution<TDestElement>, CanGetLogAverageOf<TDestElementDistribution>, SettableToProduct<TDestElementDistribution>, SettableToWeightedSumExact<TDestElementDistribution>, SettableToPartialUniform<TDestElementDistribution>, Sampleable<TDestElement>, new()
         where TSrcSequence : class, IEnumerable<TSrcElement>
         where TDestSequence : class, IEnumerable<TDestElement>
         where TSrcSequenceManipulator : ISequenceManipulator<TSrcSequence, TSrcElement>, new()
@@ -39,6 +39,18 @@ namespace Microsoft.ML.Probabilistic.Distributions.Automata
         where TPairDistribution : PairDistributionBase<TSrcElement, TSrcElementDistribution, TDestElement, TDestElementDistribution, TPairDistribution>, new()
         where TThis : TransducerBase<TSrcSequence, TSrcElement, TSrcElementDistribution, TSrcSequenceManipulator, TSrcAutomaton, TDestSequence, TDestElement, TDestElementDistribution, TDestSequenceManipulator, TDestAutomaton, TPairDistribution, TThis>, new()
     {
+        /// <summary>
+        /// Distribution manipulator for source distribution.
+        /// </summary>
+        protected static readonly IDistributionManipulator<TSrcElement, TSrcElementDistribution> SrcElementDistributionManipulator
+            = DistributionManipulator<TSrcElement, TSrcElementDistribution>.Instance;
+
+        /// <summary>
+        ///  Distribution manipulator for destination distribution.
+        /// </summary>
+        protected static readonly IDistributionManipulator<TDestElement, TDestElementDistribution> DestElementDistributionManipulator
+            = DistributionManipulator<TDestElement, TDestElementDistribution>.Instance;
+
         /// <summary>
         /// An automaton defined on sequences of element pairs that represents the transducer.
         /// </summary>
@@ -72,7 +84,9 @@ namespace Microsoft.ML.Probabilistic.Distributions.Automata
             result.sequencePairToWeight.SetToFunction(
                 srcAutomaton,
                 (dist, weight, group) => Tuple.Create(
-                    dist == null ? null : PairDistributionBase<TSrcElement, TSrcElementDistribution, TDestElement, TDestElementDistribution, TPairDistribution>.FromFirst(dist),
+                    SrcElementDistributionManipulator.IsNull(dist)
+                        ? null
+                        : PairDistributionBase<TSrcElement, TSrcElementDistribution, TDestElement, TDestElementDistribution, TPairDistribution>.FromFirst(dist),
                     weight));
 
             return result;
@@ -111,7 +125,9 @@ namespace Microsoft.ML.Probabilistic.Distributions.Automata
             result.sequencePairToWeight.SetToFunction(
                 destAutomaton,
                 (dist, weight, group) => Tuple.Create(
-                    dist == null ? null : PairDistributionBase<TSrcElement, TSrcElementDistribution, TDestElement, TDestElementDistribution, TPairDistribution>.FromSecond(dist),
+                    DestElementDistributionManipulator.IsNull(dist)
+                        ? null
+                        : PairDistributionBase<TSrcElement, TSrcElementDistribution, TDestElement, TDestElementDistribution, TPairDistribution>.FromSecond(dist),
                     weight));
             return result;
         }
@@ -187,8 +203,8 @@ namespace Microsoft.ML.Probabilistic.Distributions.Automata
         /// <returns>The created transducer.</returns>
         public static TThis Replace(TSrcElementDistribution allowedSrcElements, TDestElementDistribution allowedDestElements)
         {
-            Argument.CheckIfNotNull(allowedSrcElements, "allowedSrcElements");
-            Argument.CheckIfNotNull(allowedDestElements, "allowedDestElements");
+            Argument.CheckIfValid(!SrcElementDistributionManipulator.IsNull(allowedSrcElements), nameof(allowedSrcElements));
+            Argument.CheckIfValid(!DestElementDistributionManipulator.IsNull(allowedDestElements), nameof(allowedDestElements));
 
             return Replace(
                 Automaton<TSrcSequence, TSrcElement, TSrcElementDistribution, TSrcSequenceManipulator, TSrcAutomaton>.Constant(1.0, allowedSrcElements),
@@ -395,7 +411,7 @@ namespace Microsoft.ML.Probabilistic.Distributions.Automata
         /// <returns>A value indicating whether a given transducer transition is either epsilon of has epsilon source element.</returns>
         private static bool IsSrcEpsilon(PairListAutomaton.Transition transition)
         {
-            return (transition.ElementDistribution == null) || (transition.ElementDistribution.First == null);
+            return transition.ElementDistribution == null || SrcElementDistributionManipulator.IsNull(transition.ElementDistribution.First);
         }
 
         /// <summary>
@@ -441,7 +457,10 @@ namespace Microsoft.ML.Probabilistic.Distributions.Automata
                 // Epsilon transition case
                 if (IsSrcEpsilon(mappingTransition))
                 {
-                    TDestElementDistribution destElementWeights = mappingTransition.ElementDistribution == null ? null : mappingTransition.ElementDistribution.Second;
+                    TDestElementDistribution destElementWeights =
+                        mappingTransition.ElementDistribution == null
+                            ? DestElementDistributionManipulator.CreateNullDistribution()
+                            : mappingTransition.ElementDistribution.Second;
                     var childDestState = this.BuildProjectionOfSequence(
                         destAutomaton, destMappingState, srcSequence, srcSequenceIndex, destStateCache);
                     destState.AddTransition(destElementWeights, mappingTransition.Weight, childDestState, mappingTransition.Group);
@@ -487,7 +506,7 @@ namespace Microsoft.ML.Probabilistic.Distributions.Automata
             Automaton<TSrcSequence, TSrcElement, TSrcElementDistribution, TSrcSequenceManipulator, TSrcAutomaton>.State srcState,
             Dictionary<(int, int), Automaton<TDestSequence, TDestElement, TDestElementDistribution, TDestSequenceManipulator, TDestAutomaton>.State> destStateCache)
         {
-            Debug.Assert(mappingState != null && srcState != null, "Valid states must be provided.");
+            Debug.Assert(!mappingState.IsNull && srcState != null, "Valid states must be provided.");
             Debug.Assert(!ReferenceEquals(srcState.Owner, destAutomaton), "Cannot build a projection in place.");
             
             //// The code of this method has a lot in common with the code of Automaton<>.BuildProduct.
@@ -513,7 +532,10 @@ namespace Microsoft.ML.Probabilistic.Distributions.Automata
                 // Epsilon transition case
                 if (IsSrcEpsilon(mappingTransition))
                 {
-                    TDestElementDistribution destElementDistribution = mappingTransition.ElementDistribution == null ? null : mappingTransition.ElementDistribution.Second;
+                    TDestElementDistribution destElementDistribution =
+                        mappingTransition.ElementDistribution == null
+                            ? DestElementDistributionManipulator.CreateNullDistribution()
+                            : mappingTransition.ElementDistribution.Second;
                     var childDestState = this.BuildProjectionOfAutomaton(destAutomaton, childMappingState, srcState, destStateCache);
                     destState.AddTransition(destElementDistribution, mappingTransition.Weight, childDestState, mappingTransition.Group);
                     continue;

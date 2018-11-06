@@ -19,7 +19,7 @@ namespace Microsoft.ML.Probabilistic.Distributions.Automata
     /// </content>
     public abstract partial class Automaton<TSequence, TElement, TElementDistribution, TSequenceManipulator, TThis>
         where TSequence : class, IEnumerable<TElement>
-        where TElementDistribution : class, IDistribution<TElement>, SettableToProduct<TElementDistribution>, SettableToWeightedSumExact<TElementDistribution>, CanGetLogAverageOf<TElementDistribution>, SettableToPartialUniform<TElementDistribution>, new()
+        where TElementDistribution : IDistribution<TElement>, SettableToProduct<TElementDistribution>, SettableToWeightedSumExact<TElementDistribution>, CanGetLogAverageOf<TElementDistribution>, SettableToPartialUniform<TElementDistribution>, new()
         where TSequenceManipulator : ISequenceManipulator<TSequence, TElement>, new()
         where TThis : Automaton<TSequence, TElement, TElementDistribution, TSequenceManipulator, TThis>, new()
     {
@@ -83,10 +83,7 @@ namespace Microsoft.ML.Probabilistic.Distributions.Automata
             /// <summary>
             /// Gets a value indicating whether this transition is an epsilon transition.
             /// </summary>
-            public bool IsEpsilon
-            {
-                get { return this.ElementDistribution == null; }
-            }
+            public bool IsEpsilon => ElementDistributionManipulator.IsNull(this.ElementDistribution);
 
             /// <summary>
             /// Replaces the configuration of this transition with the configuration of a given transition.
@@ -116,7 +113,7 @@ namespace Microsoft.ML.Probabilistic.Distributions.Automata
                 }
 
                 sb.Append('[');
-                sb.Append(this.ElementDistribution == null ? "eps" : this.ElementDistribution.ToString());
+                sb.Append(ElementDistributionManipulator.IsNull(this.ElementDistribution)? "eps" : this.ElementDistribution.ToString());
                 sb.Append(']');
                 sb.Append(" " + this.Weight.Value);
                 sb.Append(" -> " + this.DestinationStateIndex);
@@ -130,7 +127,7 @@ namespace Microsoft.ML.Probabilistic.Distributions.Automata
             public void Write(Action<int> writeInt32, Action<double> writeDouble, Action<TElementDistribution> writeElementDistribution)
             {
                 writeInt32(this.DestinationStateIndex);
-                var hasElementDistribution = this.ElementDistribution != null;
+                var hasElementDistribution = !ElementDistributionManipulator.IsNull(this.ElementDistribution);
 
                 var groupAndHasElementDistribution = this.Group << 1 | (hasElementDistribution ? 1 : 0);
                 writeInt32(groupAndHasElementDistribution);

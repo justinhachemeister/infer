@@ -21,7 +21,7 @@ namespace Microsoft.ML.Probabilistic.Distributions.Automata
     /// </content>
     public abstract partial class Automaton<TSequence, TElement, TElementDistribution, TSequenceManipulator, TThis>
         where TSequence : class, IEnumerable<TElement>
-        where TElementDistribution : class, IDistribution<TElement>, SettableToProduct<TElementDistribution>, SettableToWeightedSumExact<TElementDistribution>, CanGetLogAverageOf<TElementDistribution>, SettableToPartialUniform<TElementDistribution>, new()
+        where TElementDistribution : IDistribution<TElement>, SettableToProduct<TElementDistribution>, SettableToWeightedSumExact<TElementDistribution>, CanGetLogAverageOf<TElementDistribution>, SettableToPartialUniform<TElementDistribution>, new()
         where TSequenceManipulator : ISequenceManipulator<TSequence, TElement>, new()
         where TThis : Automaton<TSequence, TElement, TElementDistribution, TSequenceManipulator, TThis>, new()
     {
@@ -1147,10 +1147,7 @@ namespace Microsoft.ML.Probabilistic.Distributions.Automata
                 /// <summary>
                 /// Gets a value indicating whether this element corresponds to an epsilon self-loop.
                 /// </summary>
-                public bool IsEpsilonSelfLoop
-                {
-                    get { return this.ElementDistribution == null && this.LoopWeight.HasValue; }
-                }
+                public bool IsEpsilonSelfLoop => ElementDistributionManipulator.IsNull(this.ElementDistribution) && this.LoopWeight.HasValue;
 
                 /// <summary>
                 /// Gets the group associated with the generalized element.
