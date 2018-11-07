@@ -829,12 +829,12 @@ namespace Microsoft.ML.Probabilistic.Compiler
         {
             CodeCompiler cc = new CodeCompiler();
             cc.GeneratedSourceFolder = GeneratedSourceFolder;
-            cc.writeSourceFiles = WriteSourceFiles;
-            cc.useExistingFiles = UseExistingSourceFiles;
+            //cc.writeSourceFiles = WriteSourceFiles;
+            //cc.useExistingFiles = UseExistingSourceFiles;
             cc.generateInMemory = GenerateInMemory;
             cc.includeDebugInformation = IncludeDebugInformation;
             cc.optimizeCode = !IncludeDebugInformation; // tie these together for now
-            cc.showProgress = ShowProgress;
+            //cc.showProgress = ShowProgress;
             cc.compilerChoice = CompilerChoice;
             CompilerResults cr = cc.WriteAndCompile(itds);
             // Examine the compilation results and stop if errors

@@ -110,12 +110,12 @@ namespace Microsoft.ML.Probabilistic.Compiler
         /// <summary>
         /// If true, source code files are written out for each transformed class.
         /// </summary>
-        public bool writeSourceFiles = true;
+        private bool writeSourceFiles = true;
 
         /// <summary>
         /// If true, existing source code files are used.
         /// </summary>
-        public bool useExistingFiles = false;
+        private bool useExistingFiles = true;
 
         /// <summary>
         /// If true, source code files are written out for each transformed class.
@@ -130,7 +130,7 @@ namespace Microsoft.ML.Probabilistic.Compiler
         /// <summary>
         /// If true, print messages about compilation progress.
         /// </summary>
-        public bool showProgress;
+        private bool showProgress = true;
 
 
         /// <summary>
