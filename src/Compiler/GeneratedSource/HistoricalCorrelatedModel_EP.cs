@@ -7,7 +7,6 @@ using Microsoft.ML.Probabilistic.Distributions;
 using Microsoft.ML.Probabilistic.Factors;
 using System.Threading.Tasks;
 using Microsoft.ML.Probabilistic.Collections;
-using System.Collections.Generic;
 
 namespace Models
 {
@@ -2455,8 +2454,8 @@ namespace Models
 								for(int index16 = 0; index16<thisDotupdateChangeVariableSubarrayCountInGame_game_playerInGame_local; index16++) {
 									thisDotupdateChanges_F_game_playerInGame_local[index16] = Gaussian.Uniform();
 								}
-								thisDotupdateChanges_F_game_playerInGame_local = SplitSubarrayOp<double>.ItemsAverageConditional<Gaussian,DistributionStructArray<Gaussian,double>>(thisDotupdateSubarray_F_game_local, thisDotupdateChangeVariableSubarrayIndexInGame_game_local, playerInGame, thisDotupdateChanges_F_game_playerInGame_local);
-								thisDotupdateChanges_F_game_local[playerInGame] = thisDotupdateChanges_F_game_playerInGame_local;
+								thisDotupdateChanges_F_game_playerInGame_local = SplitSubarrayOp<double>.ItemsAverageConditional(thisDotupdateSubarray_F_game_local, thisDotupdateChangeVariableSubarrayIndexInGame_game_local, playerInGame, thisDotupdateChanges_F_game_playerInGame_local, false);
+                                thisDotupdateChanges_F_game_local[playerInGame] = thisDotupdateChanges_F_game_playerInGame_local;
 							}
 							DistributionStructArray<Gaussian,double> thisDotupdateChanges_item0_F_game_local = default(DistributionStructArray<Gaussian,double>);
 							thisDotupdateChanges_item0_F_game_local = new DistributionStructArray<Gaussian,double>(this.playerCountInGame[game]);
@@ -2525,8 +2524,8 @@ namespace Models
 								for(int index15 = 0; index15<thisDotpreviousChangeVariableSubarrayCountInGame_game_playerInGame_local; index15++) {
 									thisDotpreviousChanges_F_game_playerInGame_local[index15] = Gaussian.Uniform();
 								}
-								thisDotpreviousChanges_F_game_playerInGame_local = SplitSubarrayOp<double>.ItemsAverageConditional<Gaussian,DistributionStructArray<Gaussian,double>>(thisDotpreviousSubarray_F_game_local, thisDotpreviousChangeVariableSubarrayIndexInGame_game_local, playerInGame, thisDotpreviousChanges_F_game_playerInGame_local);
-								thisDotpreviousChanges_F_game_local[playerInGame] = thisDotpreviousChanges_F_game_playerInGame_local;
+								thisDotpreviousChanges_F_game_playerInGame_local = SplitSubarrayOp<double>.ItemsAverageConditional(thisDotpreviousSubarray_F_game_local, thisDotpreviousChangeVariableSubarrayIndexInGame_game_local, playerInGame, thisDotpreviousChanges_F_game_playerInGame_local, false);
+                                thisDotpreviousChanges_F_game_local[playerInGame] = thisDotpreviousChanges_F_game_playerInGame_local;
 							}
 							DistributionStructArray<Gaussian,double> thisDotvdouble230_F_game_local = default(DistributionStructArray<Gaussian,double>);
 							thisDotvdouble230_F_game_local = new DistributionStructArray<Gaussian,double>(this.playerCountInGame[game]);
@@ -2676,7 +2675,7 @@ namespace Models
 							for(int team = 0; team<thisDotTeamCount_game_local; team++) {
 								thisDotvdouble__146_B_game_local[team] = Gaussian.Uniform();
 							}
-							thisDotvdouble__146_B_game_local = GetItemsOp<double>.ArrayAverageConditional<Gaussian,DistributionStructArray<Gaussian,double>>(thisDotvdouble__146_itemteamIndexOfPlayer_game__playerInGame__B_game_local, thisDotteamIndexOfPlayer_game_local, thisDotvdouble__146_B_game_local);
+							thisDotvdouble__146_B_game_local = GetItemsOp<double>.ArrayAverageConditional(thisDotvdouble__146_itemteamIndexOfPlayer_game__playerInGame__B_game_local, thisDotteamIndexOfPlayer_game_local, thisDotvdouble__146_B_game_local);
 							DistributionRefArray<DistributionStructArray<Gaussian,double>,double[]> thisDotteamStrength2_rep_B_game_local = default(DistributionRefArray<DistributionStructArray<Gaussian,double>,double[]>);
 							thisDotteamStrength2_rep_B_game_local = new DistributionRefArray<DistributionStructArray<Gaussian,double>,double[]>(thisDotTeamCount_game_local);
 							for(int _a = 0; _a<thisDotTeamCount_game_local; _a++) {
@@ -2767,8 +2766,8 @@ namespace Models
 								}
 								DistributionStructArray<Gaussian,double> thisDotweightedPerformances_F_game_team_local = default(DistributionStructArray<Gaussian,double>);
 								thisDotweightedPerformances_F_game_team_local = new DistributionStructArray<Gaussian,double>(thisDotTeamSizes_game_team_local);
-								thisDotperformancesByTeam_F_game_team_local = SplitSubarrayOp<double>.ItemsAverageConditional<Gaussian,DistributionStructArray<Gaussian,double>>(thisDotperformancesPrimary_F_game_local, this.indexOfPlayerOnTeam[game], team, thisDotperformancesByTeam_F_game_team_local);
-								for(int teamPlayer = 0; teamPlayer<thisDotTeamSizes_game_team_local; teamPlayer++) {
+								thisDotperformancesByTeam_F_game_team_local = SplitSubarrayOp<double>.ItemsAverageConditional(thisDotperformancesPrimary_F_game_local, this.indexOfPlayerOnTeam[game], team, thisDotperformancesByTeam_F_game_team_local, false);
+                                for (int teamPlayer = 0; teamPlayer<thisDotTeamSizes_game_team_local; teamPlayer++) {
 									Gaussian thisDotperformancesByTeamPrimary_F_game_team_teamPlayer_local = default(Gaussian);
 									thisDotperformancesByTeamPrimary_F_game_team_teamPlayer_local = Gaussian.Uniform();
 									Gaussian thisDotweightedPerformances_F_game_team_teamPlayer_local = default(Gaussian);
@@ -2834,7 +2833,7 @@ namespace Models
 							}
 							int[] thisDotteamOrderInGame_game_local = default(int[]);
 							thisDotteamOrderInGame_game_local = this.teamOrderInGame[game];
-							thisDotorderedTeamSum_F_game_local = SubarrayOp<double>.ItemsAverageConditional<Gaussian,DistributionStructArray<Gaussian,double>>(thisDotteamSumOfWeightedPerformancesPrimary_F_game_local, thisDotteamOrderInGame_game_local, thisDotorderedTeamSum_F_game_local);
+							thisDotorderedTeamSum_F_game_local = SubarrayOp<double>.ItemsAverageConditional(thisDotteamSumOfWeightedPerformancesPrimary_F_game_local, thisDotteamOrderInGame_game_local, thisDotorderedTeamSum_F_game_local);
 							bool[] thisDotdrawWithPreviousInGame_game_local = default(bool[]);
 							for(int orderedTeam = 0; orderedTeam<this.TeamCount[game]; orderedTeam++) { // broken
 								if (orderedTeam>0) {
@@ -2915,7 +2914,7 @@ namespace Models
 								thisDotorderedTeamSum_B_RorderedTeam_game_orderedTeam_local = ReplicateOp_NoDivide.DefAverageConditional<Gaussian>(this.orderedTeamSum_uses_B[game][orderedTeam], thisDotorderedTeamSum_B_RorderedTeam_game_orderedTeam_local);
 								thisDotorderedTeamSum_B_RorderedTeam_game_local[orderedTeam] = thisDotorderedTeamSum_B_RorderedTeam_game_orderedTeam_local;
 							}
-							thisDotteamSumOfWeightedPerformancesPrimary_B_game_local = SubarrayOp<double>.ArrayAverageConditional<Gaussian,DistributionStructArray<Gaussian,double>>(thisDotorderedTeamSum_B_RorderedTeam_game_local, thisDotteamOrderInGame_game_local, thisDotteamSumOfWeightedPerformancesPrimary_B_game_local);
+							thisDotteamSumOfWeightedPerformancesPrimary_B_game_local = SubarrayOp<double>.ArrayAverageConditional(thisDotorderedTeamSum_B_RorderedTeam_game_local, thisDotteamOrderInGame_game_local, thisDotteamSumOfWeightedPerformancesPrimary_B_game_local);
 							Gaussian[][] thisDotteamSumOfWeightedPerformancesForEvents_uses_F_game_local = default(Gaussian[][]);
 							thisDotteamSumOfWeightedPerformancesForEvents_uses_F_game_local = new Gaussian[thisDotTeamCount_game_local][];
 							for(int _iv9 = 0; _iv9<thisDotTeamCount_game_local; _iv9++) {
@@ -2984,7 +2983,7 @@ namespace Models
 								}
 								thisDotperformancesByTeam_B_game_local[team] = thisDotperformancesByTeam_B_game_team_local;
 							}
-							thisDotperformancesPrimary_B_game_local = SplitSubarrayOp<double>.ArrayAverageConditional<Gaussian,DistributionStructArray<Gaussian,double>>(thisDotperformancesByTeam_B_game_local, this.indexOfPlayerOnTeam[game], thisDotperformancesPrimary_B_game_local);
+							thisDotperformancesPrimary_B_game_local = SplitSubarrayOp<double>.ArrayAverageConditional(thisDotperformancesByTeam_B_game_local, this.indexOfPlayerOnTeam[game], thisDotperformancesPrimary_B_game_local);
 							DistributionStructArray<Gaussian,double> thisDotperformancesForQuit_F_game_local = default(DistributionStructArray<Gaussian,double>);
 							thisDotperformancesForQuit_F_game_local = new DistributionStructArray<Gaussian,double>(this.playerCountInGame[game]);
 							for(int _ind0 = 0; _ind0<this.playerCountInGame[game]; _ind0++) {
@@ -3316,18 +3315,12 @@ namespace Models
 							for(int _iv3 = 0; _iv3<thisDotsubarrayChangeVariableCountInGame_game_local; _iv3++) {
 								thisDotbaseSkillChangesInGame_B_game_local[_iv3] = Gaussian.Uniform();
 							}
-
-                            IList<Gaussian> a = thisDotskillsPast_B_game_local;
-                            int b = this.playerCountInGame[game];
-                            IList<Gaussian> c = thisDotskillsPresent_B_game_local;
-						    DistributionStructArray<Gaussian, double> d = thisDotskillsPastAndPresent_B_game_local;
-
-                            thisDotskillsPastAndPresent_B_game_local = SplitOp<double>.ArrayAverageConditional<DistributionStructArray<Gaussian,double>, Gaussian>(a, b, c, d);
-							thisDotpreviousSubarray_B_game_local = SplitSubarrayOp<double>.ArrayAverageConditional<Gaussian,DistributionStructArray<Gaussian,double>>(thisDotpreviousChanges_B_game_local, thisDotpreviousChangeVariableSubarrayIndexInGame_game_local, thisDotpreviousSubarray_B_game_local);
-							thisDotupdateSubarray_B_game_local = SplitSubarrayOp<double>.ArrayAverageConditional<Gaussian,DistributionStructArray<Gaussian,double>>(thisDotupdateChanges_B_game_local, thisDotupdateChangeVariableSubarrayIndexInGame_game_local, thisDotupdateSubarray_B_game_local);
-							thisDotbaseSkillChangesInGame_B_game_local = SplitOp<double>.ArrayAverageConditional<DistributionStructArray<Gaussian,double>,Gaussian>(thisDotpreviousSubarray_B_game_local, thisDotpreviousSubarrayChangeVariableCountInGame_game_local, thisDotupdateSubarray_B_game_local, thisDotbaseSkillChangesInGame_B_game_local);
-							this.combinedVariables_B[game] = SplitOp<double>.ArrayAverageConditional<DistributionStructArray<Gaussian,double>,Gaussian>(thisDotskillsPastAndPresent_B_game_local, this.offsetVariableCountInGame[game], thisDotbaseSkillChangesInGame_B_game_local, this.combinedVariables_B[game]);
-							this.skillInConditions_marginal_F = JaggedSubarrayWithMarginalOp<double>.MarginalIncrementItems<DistributionStructArray<Gaussian,double>,Gaussian,DistributionStructArray<Gaussian,double>>(this.combinedVariables_B[game], thisDotskillInConditions_CombinedVariableIndexInGame_F_game_local, this.combinedVariableIndexInGame, game, this.skillInConditions_marginal_F);
+							thisDotskillsPastAndPresent_B_game_local = SplitOp<double>.ArrayAverageConditional(thisDotskillsPast_B_game_local, this.playerCountInGame[game], thisDotskillsPresent_B_game_local, thisDotskillsPastAndPresent_B_game_local);
+							thisDotpreviousSubarray_B_game_local = SplitSubarrayOp<double>.ArrayAverageConditional(thisDotpreviousChanges_B_game_local, thisDotpreviousChangeVariableSubarrayIndexInGame_game_local, thisDotpreviousSubarray_B_game_local);
+							thisDotupdateSubarray_B_game_local = SplitSubarrayOp<double>.ArrayAverageConditional(thisDotupdateChanges_B_game_local, thisDotupdateChangeVariableSubarrayIndexInGame_game_local, thisDotupdateSubarray_B_game_local);
+							thisDotbaseSkillChangesInGame_B_game_local = SplitOp<double>.ArrayAverageConditional(thisDotpreviousSubarray_B_game_local, thisDotpreviousSubarrayChangeVariableCountInGame_game_local, thisDotupdateSubarray_B_game_local, thisDotbaseSkillChangesInGame_B_game_local);
+							this.combinedVariables_B[game] = SplitOp<double>.ArrayAverageConditional(thisDotskillsPastAndPresent_B_game_local, this.offsetVariableCountInGame[game], thisDotbaseSkillChangesInGame_B_game_local, this.combinedVariables_B[game]);
+							this.skillInConditions_marginal_F = JaggedSubarrayWithMarginalOp<double>.MarginalIncrementItems(this.combinedVariables_B[game], thisDotskillInConditions_CombinedVariableIndexInGame_F_game_local, this.combinedVariableIndexInGame, game, this.skillInConditions_marginal_F);
 						}
 					});
 				}
@@ -3399,7 +3392,7 @@ namespace Models
 							for(int team = 0; team<thisDotTeamCount_game_local2; team++) {
 								thisDotvdouble__146_B_Rgame_game_local[team] = Gaussian.Uniform();
 							}
-							thisDotvdouble__146_B_Rgame_game_local = GetItemsOp<double>.ArrayAverageConditional<Gaussian,DistributionStructArray<Gaussian,double>>(thisDotvdouble__146_itemteamIndexOfPlayer_game__playerInGame__B_Rgame_game_local, thisDotteamIndexOfPlayer_Rgame_game_local, thisDotvdouble__146_B_Rgame_game_local);
+							thisDotvdouble__146_B_Rgame_game_local = GetItemsOp<double>.ArrayAverageConditional(thisDotvdouble__146_itemteamIndexOfPlayer_game__playerInGame__B_Rgame_game_local, thisDotteamIndexOfPlayer_Rgame_game_local, thisDotvdouble__146_B_Rgame_game_local);
 							DistributionRefArray<DistributionStructArray<Gaussian,double>,double[]> thisDotteamStrength2_rep_B_Rgame_game_local = default(DistributionRefArray<DistributionStructArray<Gaussian,double>,double[]>);
 							thisDotteamStrength2_rep_B_Rgame_game_local = new DistributionRefArray<DistributionStructArray<Gaussian,double>,double[]>(thisDotTeamCount_game_local2);
 							for(int _a = 0; _a<thisDotTeamCount_game_local2; _a++) {
@@ -3501,8 +3494,8 @@ namespace Models
 								for(int index16 = 0; index16<thisDotupdateChangeVariableSubarrayCountInGame_game_playerInGame_local3; index16++) {
 									thisDotupdateChanges_F_Rgame_game_playerInGame_local[index16] = Gaussian.Uniform();
 								}
-								thisDotupdateChanges_F_Rgame_game_playerInGame_local = SplitSubarrayOp<double>.ItemsAverageConditional<Gaussian,DistributionStructArray<Gaussian,double>>(thisDotupdateSubarray_F_Rgame_game_local, thisDotupdateChangeVariableSubarrayIndexInGame_game_local2, playerInGame, thisDotupdateChanges_F_Rgame_game_playerInGame_local);
-								thisDotupdateChanges_F_Rgame_game_local[playerInGame] = thisDotupdateChanges_F_Rgame_game_playerInGame_local;
+								thisDotupdateChanges_F_Rgame_game_playerInGame_local = SplitSubarrayOp<double>.ItemsAverageConditional(thisDotupdateSubarray_F_Rgame_game_local, thisDotupdateChangeVariableSubarrayIndexInGame_game_local2, playerInGame, thisDotupdateChanges_F_Rgame_game_playerInGame_local, false);
+                                thisDotupdateChanges_F_Rgame_game_local[playerInGame] = thisDotupdateChanges_F_Rgame_game_playerInGame_local;
 							}
 							DistributionStructArray<Gaussian,double> thisDotupdateChanges_item0_F_Rgame_game_local = default(DistributionStructArray<Gaussian,double>);
 							thisDotupdateChanges_item0_F_Rgame_game_local = new DistributionStructArray<Gaussian,double>(this.playerCountInGame[game]);
@@ -3608,8 +3601,8 @@ namespace Models
 								for(int index15 = 0; index15<thisDotpreviousChangeVariableSubarrayCountInGame_game_playerInGame_local3; index15++) {
 									thisDotpreviousChanges_F_Rgame_game_playerInGame_local[index15] = Gaussian.Uniform();
 								}
-								thisDotpreviousChanges_F_Rgame_game_playerInGame_local = SplitSubarrayOp<double>.ItemsAverageConditional<Gaussian,DistributionStructArray<Gaussian,double>>(thisDotpreviousSubarray_F_Rgame_game_local, thisDotpreviousChangeVariableSubarrayIndexInGame_game_local2, playerInGame, thisDotpreviousChanges_F_Rgame_game_playerInGame_local);
-								thisDotpreviousChanges_F_Rgame_game_local[playerInGame] = thisDotpreviousChanges_F_Rgame_game_playerInGame_local;
+								thisDotpreviousChanges_F_Rgame_game_playerInGame_local = SplitSubarrayOp<double>.ItemsAverageConditional(thisDotpreviousSubarray_F_Rgame_game_local, thisDotpreviousChangeVariableSubarrayIndexInGame_game_local2, playerInGame, thisDotpreviousChanges_F_Rgame_game_playerInGame_local, false);
+                                thisDotpreviousChanges_F_Rgame_game_local[playerInGame] = thisDotpreviousChanges_F_Rgame_game_playerInGame_local;
 							}
 							DistributionStructArray<Gaussian,double> thisDotvdouble230_F_Rgame_game_local = default(DistributionStructArray<Gaussian,double>);
 							thisDotvdouble230_F_Rgame_game_local = new DistributionStructArray<Gaussian,double>(this.playerCountInGame[game]);
@@ -3822,8 +3815,8 @@ namespace Models
 								for(int teamPlayer = 0; teamPlayer<thisDotTeamSizes_game_team_local3; teamPlayer++) {
 									thisDotperformancesByTeam_F_Rgame_game_team_local[teamPlayer] = Gaussian.Uniform();
 								}
-								thisDotperformancesByTeam_F_Rgame_game_team_local = SplitSubarrayOp<double>.ItemsAverageConditional<Gaussian,DistributionStructArray<Gaussian,double>>(thisDotperformancesPrimary_F_Rgame_game_local, this.indexOfPlayerOnTeam[game], team, thisDotperformancesByTeam_F_Rgame_game_team_local);
-								DistributionStructArray<Gaussian,double> thisDotweightedPerformances_F_Rgame_game_team_local = default(DistributionStructArray<Gaussian,double>);
+								thisDotperformancesByTeam_F_Rgame_game_team_local = SplitSubarrayOp<double>.ItemsAverageConditional(thisDotperformancesPrimary_F_Rgame_game_local, this.indexOfPlayerOnTeam[game], team, thisDotperformancesByTeam_F_Rgame_game_team_local, false);
+                                DistributionStructArray<Gaussian,double> thisDotweightedPerformances_F_Rgame_game_team_local = default(DistributionStructArray<Gaussian,double>);
 								thisDotweightedPerformances_F_Rgame_game_team_local = new DistributionStructArray<Gaussian,double>(thisDotTeamSizes_game_team_local3);
 								for(int teamPlayer = 0; teamPlayer<thisDotTeamSizes_game_team_local3; teamPlayer++) {
 									Gaussian thisDotperformancesByTeamPrimary_F_Rgame_game_team_teamPlayer_local = default(Gaussian);
@@ -3857,7 +3850,7 @@ namespace Models
 							}
 							int[] thisDotteamOrderInGame_game_local2 = default(int[]);
 							thisDotteamOrderInGame_game_local2 = this.teamOrderInGame[game];
-							thisDotorderedTeamSum_F_Rgame_game_local = SubarrayOp<double>.ItemsAverageConditional<Gaussian,DistributionStructArray<Gaussian,double>>(thisDotteamSumOfWeightedPerformancesPrimary_F_Rgame_game_local, thisDotteamOrderInGame_game_local2, thisDotorderedTeamSum_F_Rgame_game_local);
+							thisDotorderedTeamSum_F_Rgame_game_local = SubarrayOp<double>.ItemsAverageConditional(thisDotteamSumOfWeightedPerformancesPrimary_F_Rgame_game_local, thisDotteamOrderInGame_game_local2, thisDotorderedTeamSum_F_Rgame_game_local);
 							bool[] thisDotdrawWithPreviousInGame_game_local2 = default(bool[]);
 							for(int orderedTeam = 0; orderedTeam<this.TeamCount[game]; orderedTeam++) { // broken
 								if (orderedTeam>0) {
@@ -3945,7 +3938,7 @@ namespace Models
 							for(int team = 0; team<thisDotTeamCount_game_local2; team++) {
 								thisDotteamSumOfWeightedPerformancesPrimary_B_Rgame_game_local[team] = Gaussian.Uniform();
 							}
-							thisDotteamSumOfWeightedPerformancesPrimary_B_Rgame_game_local = SubarrayOp<double>.ArrayAverageConditional<Gaussian,DistributionStructArray<Gaussian,double>>(thisDotorderedTeamSum_B_Rgame_RorderedTeam_game_local, thisDotteamOrderInGame_game_local2, thisDotteamSumOfWeightedPerformancesPrimary_B_Rgame_game_local);
+							thisDotteamSumOfWeightedPerformancesPrimary_B_Rgame_game_local = SubarrayOp<double>.ArrayAverageConditional(thisDotorderedTeamSum_B_Rgame_RorderedTeam_game_local, thisDotteamOrderInGame_game_local2, thisDotteamSumOfWeightedPerformancesPrimary_B_Rgame_game_local);
 							DistributionRefArray<DistributionStructArray<Gaussian,double>,double[]> thisDotperformancesByTeam_B_Rgame_game_local = default(DistributionRefArray<DistributionStructArray<Gaussian,double>,double[]>);
 							thisDotperformancesByTeam_B_Rgame_game_local = new DistributionRefArray<DistributionStructArray<Gaussian,double>,double[]>(thisDotTeamCount_game_local2);
 							for(int team = 0; team<thisDotTeamCount_game_local2; team++) {
@@ -3977,7 +3970,7 @@ namespace Models
 							for(int playerInGame = 0; playerInGame<this.playerCountInGame[game]; playerInGame++) {
 								thisDotperformancesPrimary_B_Rgame_game_local[playerInGame] = Gaussian.Uniform();
 							}
-							thisDotperformancesPrimary_B_Rgame_game_local = SplitSubarrayOp<double>.ArrayAverageConditional<Gaussian,DistributionStructArray<Gaussian,double>>(thisDotperformancesByTeam_B_Rgame_game_local, this.indexOfPlayerOnTeam[game], thisDotperformancesPrimary_B_Rgame_game_local);
+							thisDotperformancesPrimary_B_Rgame_game_local = SplitSubarrayOp<double>.ArrayAverageConditional(thisDotperformancesByTeam_B_Rgame_game_local, this.indexOfPlayerOnTeam[game], thisDotperformancesPrimary_B_Rgame_game_local);
 							DistributionStructArray<Gaussian,double> thisDotvdouble__146_F_Rgame_game_local = default(DistributionStructArray<Gaussian,double>);
 							thisDotvdouble__146_F_Rgame_game_local = new DistributionStructArray<Gaussian,double>(thisDotTeamCount_game_local2);
 							for(int team = 0; team<thisDotTeamCount_game_local2; team++) {
@@ -4245,7 +4238,7 @@ namespace Models
 							for(int _iv4 = 0; _iv4<this.offsetVariableCountInGame[game]; _iv4++) {
 								thisDotskillsPastAndPresent_B_Rgame_game_local[_iv4] = Gaussian.Uniform();
 							}
-							thisDotskillsPastAndPresent_B_Rgame_game_local = SplitOp<double>.ArrayAverageConditional<DistributionStructArray<Gaussian,double>,Gaussian>(thisDotskillsPast_B_Rgame_game_local, this.playerCountInGame[game], thisDotskillsPresent_B_Rgame_game_local, thisDotskillsPastAndPresent_B_Rgame_game_local);
+							thisDotskillsPastAndPresent_B_Rgame_game_local = SplitOp<double>.ArrayAverageConditional(thisDotskillsPast_B_Rgame_game_local, this.playerCountInGame[game], thisDotskillsPresent_B_Rgame_game_local, thisDotskillsPastAndPresent_B_Rgame_game_local);
 							DistributionRefArray<DistributionStructArray<Gaussian,double>,double[]> thisDotupdateChanges_B_Rgame_game_local = default(DistributionRefArray<DistributionStructArray<Gaussian,double>,double[]>);
 							thisDotupdateChanges_B_Rgame_game_local = new DistributionRefArray<DistributionStructArray<Gaussian,double>,double[]>(this.playerCountInGame[game]);
 							for(int playerInGame = 0; playerInGame<this.playerCountInGame[game]; playerInGame++) {
@@ -4365,21 +4358,21 @@ namespace Models
 							for(int _iv8 = 0; _iv8<thisDotpreviousSubarrayChangeVariableCountInGame_game_local2; _iv8++) {
 								thisDotpreviousSubarray_B_Rgame_game_local[_iv8] = Gaussian.Uniform();
 							}
-							thisDotpreviousSubarray_B_Rgame_game_local = SplitSubarrayOp<double>.ArrayAverageConditional<Gaussian,DistributionStructArray<Gaussian,double>>(thisDotpreviousChanges_B_Rgame_game_local, thisDotpreviousChangeVariableSubarrayIndexInGame_game_local2, thisDotpreviousSubarray_B_Rgame_game_local);
+							thisDotpreviousSubarray_B_Rgame_game_local = SplitSubarrayOp<double>.ArrayAverageConditional(thisDotpreviousChanges_B_Rgame_game_local, thisDotpreviousChangeVariableSubarrayIndexInGame_game_local2, thisDotpreviousSubarray_B_Rgame_game_local);
 							DistributionStructArray<Gaussian,double> thisDotupdateSubarray_B_Rgame_game_local = default(DistributionStructArray<Gaussian,double>);
 							thisDotupdateSubarray_B_Rgame_game_local = new DistributionStructArray<Gaussian,double>(thisDotupdateSubarrayChangeVariableCountInGame_game_local2);
 							for(int _iv7 = 0; _iv7<thisDotupdateSubarrayChangeVariableCountInGame_game_local2; _iv7++) {
 								thisDotupdateSubarray_B_Rgame_game_local[_iv7] = Gaussian.Uniform();
 							}
-							thisDotupdateSubarray_B_Rgame_game_local = SplitSubarrayOp<double>.ArrayAverageConditional<Gaussian,DistributionStructArray<Gaussian,double>>(thisDotupdateChanges_B_Rgame_game_local, thisDotupdateChangeVariableSubarrayIndexInGame_game_local2, thisDotupdateSubarray_B_Rgame_game_local);
+							thisDotupdateSubarray_B_Rgame_game_local = SplitSubarrayOp<double>.ArrayAverageConditional(thisDotupdateChanges_B_Rgame_game_local, thisDotupdateChangeVariableSubarrayIndexInGame_game_local2, thisDotupdateSubarray_B_Rgame_game_local);
 							DistributionStructArray<Gaussian,double> thisDotbaseSkillChangesInGame_B_Rgame_game_local = default(DistributionStructArray<Gaussian,double>);
 							thisDotbaseSkillChangesInGame_B_Rgame_game_local = new DistributionStructArray<Gaussian,double>(thisDotsubarrayChangeVariableCountInGame_game_local2);
 							for(int _iv3 = 0; _iv3<thisDotsubarrayChangeVariableCountInGame_game_local2; _iv3++) {
 								thisDotbaseSkillChangesInGame_B_Rgame_game_local[_iv3] = Gaussian.Uniform();
 							}
-							thisDotbaseSkillChangesInGame_B_Rgame_game_local = SplitOp<double>.ArrayAverageConditional<DistributionStructArray<Gaussian,double>,Gaussian>(thisDotpreviousSubarray_B_Rgame_game_local, thisDotpreviousSubarrayChangeVariableCountInGame_game_local2, thisDotupdateSubarray_B_Rgame_game_local, thisDotbaseSkillChangesInGame_B_Rgame_game_local);
-							this.combinedVariables_B[game] = SplitOp<double>.ArrayAverageConditional<DistributionStructArray<Gaussian,double>,Gaussian>(thisDotskillsPastAndPresent_B_Rgame_game_local, this.offsetVariableCountInGame[game], thisDotbaseSkillChangesInGame_B_Rgame_game_local, this.combinedVariables_B[game]);
-							this.skillInConditions_marginal_F = JaggedSubarrayWithMarginalOp<double>.MarginalIncrementItems<DistributionStructArray<Gaussian,double>,Gaussian,DistributionStructArray<Gaussian,double>>(this.combinedVariables_B[game], thisDotskillInConditions_CombinedVariableIndexInGame_F_Rgame_game_local, this.combinedVariableIndexInGame, game, this.skillInConditions_marginal_F);
+							thisDotbaseSkillChangesInGame_B_Rgame_game_local = SplitOp<double>.ArrayAverageConditional(thisDotpreviousSubarray_B_Rgame_game_local, thisDotpreviousSubarrayChangeVariableCountInGame_game_local2, thisDotupdateSubarray_B_Rgame_game_local, thisDotbaseSkillChangesInGame_B_Rgame_game_local);
+							this.combinedVariables_B[game] = SplitOp<double>.ArrayAverageConditional(thisDotskillsPastAndPresent_B_Rgame_game_local, this.offsetVariableCountInGame[game], thisDotbaseSkillChangesInGame_B_Rgame_game_local, this.combinedVariables_B[game]);
+							this.skillInConditions_marginal_F = JaggedSubarrayWithMarginalOp<double>.MarginalIncrementItems(this.combinedVariables_B[game], thisDotskillInConditions_CombinedVariableIndexInGame_F_Rgame_game_local, this.combinedVariableIndexInGame, game, this.skillInConditions_marginal_F);
 						}
 					});
 				}
@@ -4501,7 +4494,7 @@ namespace Models
 			if (this.Changed_BaseSkillPriorPrecision_InitialCombinedIndices_InitialCombinedVariableCount_InitialSkillOffs44_isDone) {
 				return ;
 			}
-			this.skillInConditions_uses_B[0] = SubarrayOp<double>.ArrayAverageConditional<Gaussian,DistributionStructArray<Gaussian,double>>(this.initialCombinedVariables_B, this.initialCombinedIndices, this.skillInConditions_uses_B[0]);
+			this.skillInConditions_uses_B[0] = SubarrayOp<double>.ArrayAverageConditional(this.initialCombinedVariables_B, this.initialCombinedIndices, this.skillInConditions_uses_B[0]);
 			this.skillInConditions_uses_F[1] = ReplicateOp_NoDivide.UsesAverageConditional<DistributionStructArray<Gaussian,double>>(this.skillInConditions_uses_B, this.skillInConditions_F, 1, this.skillInConditions_uses_F[1]);
 			this.Changed_BaseSkillPriorPrecision_InitialCombinedIndices_InitialCombinedVariableCount_InitialSkillOffs44_isDone = true;
 		}
@@ -4512,7 +4505,7 @@ namespace Models
 			if (this.Changed_BaseSkillPriorPrecision_InitialCombinedVariableCount_InitialSkillOffsetConditions_PlayerCoun43_isDone) {
 				return ;
 			}
-			this.initialCombinedVariables_B = SplitOp<double>.ArrayAverageConditional<DistributionStructArray<Gaussian,double>,Gaussian>(this.skillOffsetPriorSample_F, this.playerInConditionsCount, this.baseSkillPriorSample_F, this.initialCombinedVariables_B);
+			this.initialCombinedVariables_B = SplitOp<double>.ArrayAverageConditional(this.skillOffsetPriorSample_F, this.playerInConditionsCount, this.baseSkillPriorSample_F, this.initialCombinedVariables_B);
 			this.Changed_BaseSkillPriorPrecision_InitialCombinedVariableCount_InitialSkillOffsetConditions_PlayerCoun43_isDone = true;
 		}
 

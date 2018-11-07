@@ -262,6 +262,27 @@ namespace Microsoft.ML.Probabilistic.Factors
             return result;
         }
 
+        public static DistributionStructArray<Gaussian, double> ItemsAverageConditional(
+            [SkipIfAllUniform] IReadOnlyList<Gaussian> array,
+            IList<IList<int>> indices,
+            int resultIndex,
+            DistributionStructArray<Gaussian, double> result, 
+            bool throwAway)
+        {
+            int i = resultIndex;
+            Assert.IsTrue(result.Count == indices[i].Count, "result.Count != indices[i].Count");
+            // indices_i are all different
+            var indices_i = indices[i];
+            var indices_i_Count = indices_i.Count;
+            for (int j = 0; j < indices_i_Count; j++)
+            {
+                Gaussian value = result[j];
+                value.SetTo(array[indices_i[j]]);
+                result[j] = value;
+            }
+            return result;
+        }
+
         /// <include file='FactorDocs.xml' path='factor_docs/message_op_class[@name="JaggedSubarrayOp{T}"]/message_doc[@name="ArrayAverageConditional{DistributionType, ArrayType, ItemType}(IList{ItemType}, IList{IList{int}}, ArrayType)"]/*'/>
         /// <typeparam name="DistributionType">The type of a distribution over array elements.</typeparam>
         /// <typeparam name="ArrayType">The type of the outgoing message.</typeparam>
@@ -282,6 +303,28 @@ namespace Microsoft.ML.Probabilistic.Factors
                 {
                     var indices_i_j = indices_i[j];
                     DistributionType value = result[indices_i_j];
+                    value.SetTo(items_i[j]);
+                    result[indices_i_j] = value;
+                }
+            }
+            return result;
+        }
+
+        public static DistributionStructArray<Gaussian, double> ArrayAverageConditional(
+            [SkipIfAllUniform] IReadOnlyList<IReadOnlyList<Gaussian>> items, IList<IList<int>> indices, DistributionStructArray<Gaussian, double> result)
+        {
+            Assert.IsTrue(items.Count == indices.Count, "items.Count != indices.Count");
+            result.SetToUniform();
+            var indices_Count = indices.Count;
+            for (int i = 0; i < indices_Count; i++)
+            {
+                var indices_i = indices[i];
+                var items_i = items[i];
+                var indices_i_Count = indices_i.Count;
+                for (int j = 0; j < indices_i_Count; j++)
+                {
+                    var indices_i_j = indices_i[j];
+                    Gaussian value = result[indices_i_j];
                     value.SetTo(items_i[j]);
                     result[indices_i_j] = value;
                 }

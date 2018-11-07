@@ -872,18 +872,13 @@ namespace Microsoft.ML.Probabilistic.Factors
         }
 
         /// <include file='FactorDocs.xml' path='factor_docs/message_op_class[@name="JaggedSubarrayWithMarginalOp{T}"]/message_doc[@name="MarginalIncrement{ArrayType, DistributionType, ItemType}(ArrayType, ItemType, ItemType, IList{IList{int}}, int)"]/*'/>
-        /// <typeparam name="ArrayType">The type of the outgoing message.</typeparam>
-        /// <typeparam name="DistributionType">The type of a distribution over array elements.</typeparam>
-        /// <typeparam name="ItemType">The type of a sub-array.</typeparam>
-        public static ArrayType MarginalIncrementItems<ArrayType, DistributionType, ItemType>(
-            [Indexed, SkipIfUniform] ItemType item, // SkipIfUniform on 'item' causes this line to be pruned when the backward messages aren't changing
-            [Indexed, Cancels] ItemType to_item,    // Cancels since updating to_item does not require recomputing the increment
+        // <DistributionStructArray<Gaussian,double>,Gaussian,DistributionStructArray<Gaussian,double>>
+        public static DistributionStructArray<Gaussian, double> MarginalIncrementItems(
+            [Indexed, SkipIfUniform] DistributionStructArray<Gaussian, double> item, // SkipIfUniform on 'item' causes this line to be pruned when the backward messages aren't changing
+            [Indexed, Cancels] DistributionStructArray<Gaussian, double> to_item,    // Cancels since updating to_item does not require recomputing the increment
             IList<IList<int>> indices,
             int resultIndex,
-            ArrayType result)
-            where ArrayType : IList<DistributionType>, SettableTo<ArrayType>
-            where DistributionType : SettableToProduct<DistributionType>
-            where ItemType : IList<DistributionType>
+            DistributionStructArray<Gaussian, double> result)
         {
             int i = resultIndex;
             var indices_i = indices[i];
@@ -891,7 +886,7 @@ namespace Microsoft.ML.Probabilistic.Factors
             for (int j = 0; j < indices_i_Count; j++)
             {
                 var indices_i_j = indices_i[j];
-                DistributionType value = result[indices_i_j];
+                Gaussian value = result[indices_i_j];
                 value.SetToProduct(to_item[j], item[j]);
                 result[indices_i_j] = value;
             }

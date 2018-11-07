@@ -74,19 +74,17 @@ namespace Microsoft.ML.Probabilistic.Factors
             return sum;
         }
 
-        public static ArrayType ArrayAverageConditional<ArrayType, ItemType>(IList<ItemType> head, int count, IList<ItemType> tail, ArrayType result)
-            where ArrayType : IList<ItemType>
-            where ItemType : SettableTo<ItemType>
+        public static DistributionStructArray<Gaussian, double> ArrayAverageConditional(IList<Gaussian> head, int count, IList<Gaussian> tail, DistributionStructArray<Gaussian, double> result)
         {
             for (int i = 0; i < count; i++)
             {
-                ItemType item = result[i];
+                Gaussian item = result[i];
                 item.SetTo(head[i]);
                 result[i] = item;
             }
             for (int i = count; i < result.Count; i++)
             {
-                ItemType item = result[i];
+                Gaussian item = result[i];
                 item.SetTo(tail[i - count]);
                 result[i] = item;                
             }
@@ -193,62 +191,5 @@ namespace Microsoft.ML.Probabilistic.Factors
             }
             return result;
         }
-
-        // VMP ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-        [Skip]
-        public static double AverageLogFactor()
-        {
-            return 0.0;
-        }
-
-        public static ArrayType ArrayAverageLogarithm<ArrayType, ItemType>(IList<ItemType> head, int count, IList<ItemType> tail, ArrayType result)
-            where ArrayType : IList<ItemType>
-            where ItemType : SettableTo<ItemType>
-        {
-            return ArrayAverageConditional(head, count, tail, result);
-        }
-
-        public static ArrayType ArrayAverageLogarithm<ArrayType, ItemType>(IList<T> head, int count, IList<ItemType> tail, ArrayType result)
-            where ArrayType : IList<ItemType>
-            where ItemType : SettableTo<ItemType>, HasPoint<T>
-        {
-            return ArrayAverageConditional(head, count, tail, result);
-        }
-
-        public static ArrayType ArrayAverageLogarithm<ArrayType, ItemType>(IList<ItemType> head, int count, IList<T> tail, ArrayType result)
-            where ArrayType : IList<ItemType>
-            where ItemType : SettableTo<ItemType>, HasPoint<T>
-        {
-            return ArrayAverageConditional(head, count, tail, result);
-        }
-
-        public static ArrayType ArrayAverageLogarithm<ArrayType, ItemType>(IList<T> head, int count, IList<T> tail, ArrayType result)
-            where ArrayType : IList<ItemType>
-            where ItemType : HasPoint<T>
-        {
-            return ArrayAverageConditional<ArrayType, ItemType>(head, count, tail, result);
-        }
-
-        public static ArrayType HeadAverageLogarithm<ArrayType, ItemType>(IList<ItemType> array, int count, ArrayType result)
-            where ArrayType : IList<ItemType>
-            where ItemType : SettableTo<ItemType>
-        {
-            return HeadAverageConditional(array, count, result);
-        }
-
-        public static ArrayType TailAverageLogarithm<ArrayType, ItemType>(IList<ItemType> array, int count, ArrayType result)
-            where ArrayType : IList<ItemType>
-            where ItemType : SettableTo<ItemType>
-        {
-            return TailAverageConditional(array, count, result);
-        }
-
-        public static ArrayType TailAverageLogarithm<ArrayType>(IList<T> array, int count, ArrayType result)
-            where ArrayType : IList<T>
-        {
-            return TailAverageConditional<ArrayType>(array, count, result);
-        }
-
     }
 }

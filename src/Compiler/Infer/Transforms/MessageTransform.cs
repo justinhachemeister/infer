@@ -700,7 +700,7 @@ namespace Microsoft.ML.Probabilistic.Compiler.Transforms
                     catch (Exception ex)
                     {
                         string opErr = "This model is not supported with " + alg.Name + " due to " + info.ToString() +
-                                       ". Try using a different algorithm or expressing the model differently";
+                                       ". Try using a different algorithm or expressing the model differently - " + ex.Message;
                         if ((ex is ArgumentException) && (alg is GibbsSampling) && (!isVariableFactor))
                         {
                             Error(opErr + " Gibbs Sampling requires the conditionals to be conjugate", ex);
