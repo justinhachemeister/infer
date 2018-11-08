@@ -128,15 +128,15 @@ namespace Microsoft.ML.Probabilistic.Distributions.Automata
         /// <typeparam name="TElementSet">The type of a sequence element set.</typeparam>
         /// <param name="elementSet">The distribution over sequence elements.</param>
         /// <returns>The created node.</returns>
-        public static RegexpTreeNode<TElement> FromElementSet<TElementSet>(TElementSet elementSet)
+        public static RegexpTreeNode<TElement> FromElementSet<TElementSet>(Option<TElementSet> elementSet)
             where TElementSet : SettableToPartialUniform<TElementSet>, IDistribution<TElement>, new()
         {
-            Argument.CheckIfValid(elementSet != null, "elementSet");
+            Argument.CheckIfNotNull(elementSet, nameof(elementSet));
 
             return new RegexpTreeNode<TElement>
             { 
                 Type = RegexpTreeNodeType.ElementSet, 
-                elementSet = elementSet /* Distribution.CreatePartialUniform(elementSet) */
+                elementSet = elementSet.HasValue ? (IDistribution<TElement>)elementSet.Value : null /* Distribution.CreatePartialUniform(elementSet) */
             };
         }
 

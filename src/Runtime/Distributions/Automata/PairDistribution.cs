@@ -49,7 +49,7 @@ namespace Microsoft.ML.Probabilistic.Distributions.Automata
         /// Stores the product of distributions over the first and the the second element
         /// when the equality constraint is enabled.
         /// </summary>
-        private TElementDistribution firstTimesSecond;
+        private Option<TElementDistribution> firstTimesSecond;
 
         /// <summary>
         /// Gets a value indicating whether the equality constraint is set on the distribution.
@@ -59,7 +59,7 @@ namespace Microsoft.ML.Probabilistic.Distributions.Automata
         /// <summary>
         /// Gets or sets the point mass represented by the distribution.
         /// </summary>
-        public override Pair<TElement, TElement> Point
+        public override Pair<Option<TElement>, Option<TElement>> Point
         {
             get => base.Point;
 
@@ -79,8 +79,8 @@ namespace Microsoft.ML.Probabilistic.Distributions.Automata
         public static PairDistribution<TElement, TElementDistribution> Constrained(
             TElementDistribution firstElementDistribution, TElementDistribution secondElementDistribution)
         {
-            Argument.CheckIfValid(!ElementDistributionManipulator1.IsNull(firstElementDistribution), nameof(firstElementDistribution));
-            Argument.CheckIfValid(!ElementDistributionManipulator2.IsNull(secondElementDistribution), nameof(secondElementDistribution));
+            Argument.CheckIfValid(firstElementDistribution != null, nameof(firstElementDistribution));
+            Argument.CheckIfValid(secondElementDistribution != null, nameof(secondElementDistribution));
             
             var result = new PairDistribution<TElement, TElementDistribution>
             {
@@ -89,8 +89,8 @@ namespace Microsoft.ML.Probabilistic.Distributions.Automata
                 HasEqualityConstraint = true,
             };
 
-            result.firstTimesSecond = new TElementDistribution();
-            result.firstTimesSecond.SetToProduct(result.First, result.Second);
+            result.firstTimesSecond = Distribution.Product<TElement, TElementDistribution>(
+                result.First.Value, result.Second.Value);
 
             return result;
         }
@@ -121,16 +121,16 @@ namespace Microsoft.ML.Probabilistic.Distributions.Automata
         /// <param name="first">The element to project.</param>
         /// <param name="result">The normalized projection result.</param>
         /// <returns>The logarithm of the scale for the projection result.</returns>
-        public override double ProjectFirst(TElement first, out TElementDistribution result)
+        public override double ProjectFirst(TElement first, out Option<TElementDistribution> result)
         {
             if (this.HasEqualityConstraint)
             {
                 Debug.Assert(
-                    !ElementDistributionManipulator1.IsNull(this.First) && !ElementDistributionManipulator2.IsNull(this.Second),
+                    this.First.HasValue && this.Second.HasValue,
                     "Cannot have a constrained pair distribution with a missing element distribution.");
-                Debug.Assert(!ElementDistributionManipulator1.IsNull(this.firstTimesSecond), "Must have been computed.");
+                Debug.Assert(this.firstTimesSecond.HasValue, "Must have been computed.");
 
-                double logAverageOf = this.firstTimesSecond.GetLogProb(first);
+                double logAverageOf = this.firstTimesSecond.Value.GetLogProb(first);
                 if (double.IsNegativeInfinity(logAverageOf))
                 {
                     result = default(TElementDistribution);
@@ -151,9 +151,9 @@ namespace Microsoft.ML.Probabilistic.Distributions.Automata
         /// <param name="first">The element distribution to project.</param>
         /// <param name="result">The normalized projection result.</param>
         /// <returns>The logarithm of the scale for the projection result.</returns>
-        public override double ProjectFirst(TElementDistribution first, out TElementDistribution result)
+        public override double ProjectFirst(TElementDistribution first, out Option<TElementDistribution> result)
         {
-            Argument.CheckIfValid(!ElementDistributionManipulator1.IsNull(first), nameof(first));
+            Argument.CheckIfValid(first != null, nameof(first));
 
             if (first.IsPointMass)
             {
@@ -163,21 +163,21 @@ namespace Microsoft.ML.Probabilistic.Distributions.Automata
             if (this.HasEqualityConstraint)
             {
                 Debug.Assert(
-                    !ElementDistributionManipulator1.IsNull(this.First) && !ElementDistributionManipulator2.IsNull(this.Second),
+                    this.First.HasValue && this.Second.HasValue,
                     "Cannot have a constrained pair distribution with a missing element distribution.");
-                Debug.Assert(!ElementDistributionManipulator1.IsNull(this.firstTimesSecond), "Must have been computed.");
+                Debug.Assert(this.firstTimesSecond.HasValue, "Must have been computed.");
                 
                 // TODO: can we introduce a single method that does both GetLogAverageOf and SetToProduct?
-                double logAverageOf = this.firstTimesSecond.GetLogAverageOf(first);
+                double logAverageOf = Distribution.GetLogAverageOf<TElement, TElementDistribution>(
+                    this.firstTimesSecond.Value, first, out var product);
                 
                 if (double.IsNegativeInfinity(logAverageOf))
                 {
-                    result = default(TElementDistribution);
+                    result = Option.None;
                     return double.NegativeInfinity;
                 }
                 
-                result = new TElementDistribution();
-                result.SetToProduct(this.firstTimesSecond, first);
+                result = product;
                 return logAverageOf;    
             }
 
@@ -210,9 +210,10 @@ namespace Microsoft.ML.Probabilistic.Distributions.Automata
         {
             var result = (PairDistribution<TElement, TElementDistribution>)base.Clone();
             result.HasEqualityConstraint = this.HasEqualityConstraint;
-            result.firstTimesSecond = ElementDistributionManipulator1.IsNull(firstTimesSecond)
-                ? ElementDistributionManipulator1.CreateNullDistribution()
-                : (TElementDistribution)this.firstTimesSecond.Clone();
+            result.firstTimesSecond =
+                this.firstTimesSecond.HasValue
+                    ? Option.Some((TElementDistribution)this.firstTimesSecond.Value.Clone())
+                    : Option.None;
             return result;
         }
 
@@ -245,18 +246,16 @@ namespace Microsoft.ML.Probabilistic.Distributions.Automata
             if (this.HasEqualityConstraint)
             {
                 Debug.Assert(
-                    !ElementDistributionManipulator1.IsNull(this.First) &&
-                    !ElementDistributionManipulator2.IsNull(this.Second) &&
-                    !ElementDistributionManipulator1.IsNull(that.First) &&
-                    !ElementDistributionManipulator2.IsNull(that.Second),
+                    this.First.HasValue &&!this.Second.HasValue &&
+                    that.First.HasValue && that.Second.HasValue,
                     "Cannot have a constrained pair distribution with a missing element distribution.");
 
                 double result = 0;
-                var product = (TElementDistribution)this.firstTimesSecond.Clone();
-                result += product.GetLogAverageOf(that.First);
-                product.SetToProduct(product, that.First);
-                result += product.GetLogAverageOf(that.Second);
-                result -= that.First.GetLogAverageOf(this.Second);
+                var product = (TElementDistribution)this.firstTimesSecond.Value.Clone();
+                result += product.GetLogAverageOf(that.First.Value);
+                product.SetToProduct(product, that.First.Value);
+                result += product.GetLogAverageOf(that.Second.Value);
+                result -= that.First.Value.GetLogAverageOf(this.Second.Value);
 
                 return result;
             }
@@ -275,12 +274,7 @@ namespace Microsoft.ML.Probabilistic.Distributions.Automata
             this.HasEqualityConstraint = distribution.HasEqualityConstraint;
             if (this.HasEqualityConstraint)
             {
-                if (this.firstTimesSecond == null)
-                {
-                    this.firstTimesSecond = new TElementDistribution();
-                }
-
-                this.firstTimesSecond.SetToProduct(this.First, this.Second);    
+                this.firstTimesSecond = Distribution.Product<TElement, TElementDistribution>(this.First.Value, this.Second.Value);
             }
         }
 

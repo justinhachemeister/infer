@@ -182,7 +182,7 @@ namespace Microsoft.ML.Probabilistic.Distributions.Automata
             Transition transition, Weight sourceStateResidualWeight, 
             Dictionary<TElement, List<TransitionElement>> elements, List<TransitionElement> uniformList)
         {
-            var dist = transition.ElementDistribution;
+            var dist = transition.ElementDistribution.Value;
             Weight weightBase = Weight.Product(transition.Weight, sourceStateResidualWeight);
             if (dist.IsPointMass)
             {

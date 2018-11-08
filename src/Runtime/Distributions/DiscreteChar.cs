@@ -28,7 +28,6 @@ namespace Microsoft.ML.Probabilistic.Distributions
     /// and assumes that the number of constant-probability character ranges is small (1-10).
     /// </remarks>
     [Quality(QualityBand.Experimental)]
-    [Automata.DistributionManipulator(typeof(Automata.DiscreteCharManipulator))]
     [Serializable]
     public struct DiscreteChar
         : IDistribution<char>, SettableTo<DiscreteChar>, SettableToProduct<DiscreteChar>, SettableToRatio<DiscreteChar>, SettableToPower<DiscreteChar>,
@@ -146,37 +145,40 @@ namespace Microsoft.ML.Probabilistic.Distributions
 
         #region Properties matching factory methods
 
+        /// <summary>
+        /// Gets a value indicating whether this distribution equals the distribution created by <see cref="Null"/>.
+        /// </summary>
         public bool IsNull => this.storage == null;
 
         /// <summary>
         /// Gets a value indicating whether this distribution equals the distribution created by <see cref="Digit"/>.
         /// </summary>
-        public bool IsDigit => this.storage.IsDigit;
+        public bool IsDigit => this.storage?.IsDigit ?? false;
 
         /// <summary>
         /// Gets a value indicating whether this distribution equals the distribution created by <see cref="Lower"/>.
         /// </summary>
-        public bool IsLower => this.storage.IsLower;
+        public bool IsLower => this.storage?.IsLower ?? false;
 
         /// <summary>
         /// Gets a value indicating whether this distribution equals the distribution created by <see cref="Upper"/>.
         /// </summary>
-        public bool IsUpper => this.storage.IsUpper;
+        public bool IsUpper => this.storage?.IsUpper ?? false;
 
         /// <summary>
         /// Gets a value indicating whether this distribution equals the distribution created by <see cref="Letter"/>.
         /// </summary>
-        public bool IsLetter => this.storage.IsLetter;
+        public bool IsLetter => this.storage?.IsLetter ?? false;
 
         /// <summary>
         /// Gets a value indicating whether this distribution equals the distribution created by <see cref="LetterOrDigit"/>.
         /// </summary>
-        public bool IsLetterOrDigit => this.storage.IsLetterOrDigit;
+        public bool IsLetterOrDigit => this.storage?.IsLetterOrDigit ?? false;
 
         /// <summary>
         /// Gets a value indicating whether this distribution equals the distribution created by <see cref="WordChar"/>.
         /// </summary>
-        public bool IsWordChar => this.storage.IsWordChar;
+        public bool IsWordChar => this.storage?.IsWordChar ?? false;
 
         #endregion
 
@@ -243,11 +245,16 @@ namespace Microsoft.ML.Probabilistic.Distributions
         }
 
         /// <summary>
-        /// Creates an unitialized distribution which can't be used until assigned
+        /// Creates an unitialized distribution which can't be used until it is assigned.
         /// </summary>
+        /// <remarks>
+        /// This constructor is needed to make quoting operation work with default values of DefaultChar.
+        /// Otherwise quoting crashes when trying to call Is* getters to find a suitable constructor.
+        /// Because calling any methods on DiscreteChar that was not initialized explicitle is not allowed.
+        /// </remarks>
         /// <returns>The created distribution.</returns>
-        [Construction(UseWhen = "IsNull", Priority = 2)]
-        public static DiscreteChar Null() => new DiscreteChar();
+        [Construction(UseWhen = "IsNull")]
+        private static DiscreteChar Null() => new DiscreteChar();
 
         /// <summary>
         /// Creates a uniform distribution over characters.
@@ -496,6 +503,11 @@ namespace Microsoft.ML.Probabilistic.Distributions
         /// </returns>
         public bool IsUniform()
         {
+            if (this.storage == null)
+            {
+                return false;
+            }
+
             foreach (var range in this.storage.Ranges)
             {
                 if (Math.Abs(range.Probability - UniformProb) > Eps)

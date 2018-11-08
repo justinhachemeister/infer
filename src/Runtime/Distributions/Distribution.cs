@@ -476,6 +476,18 @@ namespace Microsoft.ML.Probabilistic.Distributions
     }
 
     /// <summary>
+    /// Marker interface that says that default(TDistribution) should be treated as null value.
+    /// This is trvially true for distributions implemented as reference types. Most distribution
+    /// implemented as ValueTypes do not have this property.
+    /// </summary>
+    /// <remarks>
+    /// This interface is used in implementation of automatones. For performance reasons
+    /// </remarks>
+    public interface TreatDefaultAsNull<TDistribution>
+    {
+    }
+
+    /// <summary>
     /// Exception thrown when a distribution is improper and its expectations need to be computed.
     /// </summary>
     [Serializable]
@@ -1439,6 +1451,17 @@ namespace Microsoft.ML.Probabilistic.Distributions
             }
 
             return logNormalizer;
+        }
+
+        /// <summary>
+        /// Helper method that creates new distribution that is equal to product of 2 given distributions.
+        /// </summary>
+        public static TDistribution Product<T, TDistribution>(TDistribution distribution1, TDistribution distribution2)
+            where TDistribution : IDistribution<T>, SettableToProduct<TDistribution>, new()
+        {
+            var result = new TDistribution();
+            result.SetToProduct(distribution1, distribution2);
+            return result;
         }
 
         /// <summary>

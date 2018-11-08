@@ -128,12 +128,6 @@ namespace Microsoft.ML.Probabilistic.Distributions.Automata
             new TSequenceManipulator();
 
         /// <summary>
-        /// Get the element distribution manipulator.
-        /// </summary>
-        public static IDistributionManipulator<TElement, TElementDistribution> ElementDistributionManipulator { get; } =
-            DistributionManipulator<TElement, TElementDistribution>.Instance;
-
-        /// <summary>
         /// Gets or sets a value that, if not null, will be returned when computing the log value of any sequence
         /// which is in the support of this automaton (i.e. has non-zero value under the automaton).
         /// </summary>
@@ -344,7 +338,7 @@ namespace Microsoft.ML.Probabilistic.Distributions.Automata
         /// <returns>The created automaton.</returns>
         public static TThis ConstantOnElementLog(double logValue, TElementDistribution allowedElements)
         {
-            Argument.CheckIfValid(!ElementDistributionManipulator.IsNull(allowedElements), nameof(allowedElements));
+            Argument.CheckIfValid(allowedElements != null, nameof(allowedElements));
 
             TThis result = Zero();
             if (!double.IsNegativeInfinity(logValue))
@@ -999,23 +993,13 @@ namespace Microsoft.ML.Probabilistic.Distributions.Automata
         /// </remarks>
         public bool IsCanonicConstant()
         {
-            if (this.statesData.Count != 1)
+            if (this.statesData.Count != 1 || this.Start.TransitionCount != 1 || !this.Start.CanEnd)
             {
                 return false;
             }
 
-            if (this.Start.TransitionCount != 1)
-            {
-                return false;
-            }
-
-            if (!this.Start.CanEnd)
-            {
-                return false;
-            }
-
-            var transition = this.Start.GetTransition(0);
-            return transition.ElementDistribution.IsUniform();
+            var transitionDistribution = this.Start.GetTransition(0).ElementDistribution;
+            return transitionDistribution.HasValue && transitionDistribution.Value.IsUniform();
         }
 
         /// <summary>
@@ -1091,8 +1075,8 @@ namespace Microsoft.ML.Probabilistic.Distributions.Automata
                         }
                         else
                         {
-                            transition.ElementDistribution = Distribution.CreatePartialUniform(transition.ElementDistribution);
-                            transition.Weight = Weight.FromLogValue(-transition.ElementDistribution.GetLogAverageOf(transition.ElementDistribution));
+                            transition.ElementDistribution = Distribution.CreatePartialUniform(transition.ElementDistribution.Value);
+                            transition.Weight = Weight.FromLogValue(-transition.ElementDistribution.Value.GetLogAverageOf(transition.ElementDistribution.Value));
                         }
 
                         state.SetTransition(transitionIndex, transition);
@@ -1577,7 +1561,7 @@ namespace Microsoft.ML.Probabilistic.Distributions.Automata
         /// <param name="allowedElements">The distribution representing allowed sequence elements.</param>
         public void SetToConstantLog(double logValue, TElementDistribution allowedElements)
         {
-            Argument.CheckIfValid(!ElementDistributionManipulator.IsNull(allowedElements), nameof(allowedElements));
+            Argument.CheckIfValid(allowedElements != null, nameof(allowedElements));
 
             allowedElements = Distribution.CreatePartialUniform(allowedElements);
             this.SetToZero();
@@ -1618,7 +1602,7 @@ namespace Microsoft.ML.Probabilistic.Distributions.Automata
         /// <param name="transitionTransform">The transition transformation.</param>
         public void SetToFunction<TSrcSequence, TSrcElement, TSrcElementDistribution, TSrcSequenceManipulator, TSrcAutomaton>(
             Automaton<TSrcSequence, TSrcElement, TSrcElementDistribution, TSrcSequenceManipulator, TSrcAutomaton> sourceAutomaton,
-            Func<TSrcElementDistribution, Weight, int, Tuple<TElementDistribution, Weight>> transitionTransform)
+            Func<Option<TSrcElementDistribution>, Weight, int, Tuple<Option<TElementDistribution>, Weight>> transitionTransform)
             where TSrcElementDistribution : IDistribution<TSrcElement>, CanGetLogAverageOf<TSrcElementDistribution>, SettableToProduct<TSrcElementDistribution>, SettableToWeightedSumExact<TSrcElementDistribution>, SettableToPartialUniform<TSrcElementDistribution>, new()
             where TSrcSequence : class, IEnumerable<TSrcElement>
             where TSrcSequenceManipulator : ISequenceManipulator<TSrcSequence, TSrcElement>, new()
@@ -1646,7 +1630,10 @@ namespace Microsoft.ML.Probabilistic.Distributions.Automata
                 for (int transitionIndex = 0; transitionIndex < otherState.TransitionCount; transitionIndex++)
                 {
                     var otherTransition = otherState.GetTransition(transitionIndex);
-                    var transformedTransition = transitionTransform(otherTransition.ElementDistribution, otherTransition.Weight, otherTransition.Group);
+                    var transformedTransition = transitionTransform(
+                        otherTransition.ElementDistribution,
+                        otherTransition.Weight,
+                        otherTransition.Group);
                     this.States[stateIndex].AddTransition(
                         transformedTransition.Item1,
                         transformedTransition.Item2,
@@ -2355,13 +2342,13 @@ namespace Microsoft.ML.Probabilistic.Distributions.Automata
                         return false;
                     }
                 }
-                else if (!transition.ElementDistribution.IsPointMass)
+                else if (!transition.ElementDistribution.Value.IsPointMass)
                 {
                     return false;
                 }
                 else
                 {
-                    TElement element = transition.ElementDistribution.Point;
+                    TElement element = transition.ElementDistribution.Value.Point;
                     if (currentSequencePos == point.Count)
                     {
                         // It is the first time at this sequence position
@@ -2438,7 +2425,7 @@ namespace Microsoft.ML.Probabilistic.Distributions.Automata
 
                     TElementDistribution product;
                     double productLogNormalizer = Distribution<TElement>.GetLogAverageOf(
-                        transition1.ElementDistribution, transition2.ElementDistribution, out product);
+                        transition1.ElementDistribution.Value, transition2.ElementDistribution.Value, out product);
                     ////if (product is StringDistribution)
                     ////{
                     ////    Console.WriteLine(transition1.ElementDistribution+" x "+transition2.ElementDistribution+" = "+product+" "+productLogNormalizer+" "+transition1.ElementDistribution.Equals(transition1.ElementDistribution)+" "+transition1.ElementDistribution.Equals(transition2.ElementDistribution));
@@ -2666,7 +2653,7 @@ namespace Microsoft.ML.Probabilistic.Distributions.Automata
                 {
                     if (appendRegex != null)
                     {
-                        appendRegex(transition.ElementDistribution, builder);
+                        appendRegex(transition.ElementDistribution.Value, builder);
                     }
                     else
                     {
@@ -2702,7 +2689,7 @@ namespace Microsoft.ML.Probabilistic.Distributions.Automata
                 {
                     if (appendRegex != null)
                     {
-                        appendRegex(transition.ElementDistribution, builder);
+                        appendRegex(transition.ElementDistribution.Value, builder);
                     }
                     else
                     {
@@ -2760,9 +2747,9 @@ namespace Microsoft.ML.Probabilistic.Distributions.Automata
                         yield return support;
                     }
                 }
-                else if (transition.ElementDistribution.IsPointMass)
+                else if (transition.ElementDistribution.Value.IsPointMass)
                 {
-                    prefix.Push(transition.ElementDistribution.Point);
+                    prefix.Push(transition.ElementDistribution.Value.Point);
                     foreach (var support in this.EnumerateSupport(prefix, visitedStates, transition.DestinationStateIndex))
                     {
                         yield return support;
@@ -2772,7 +2759,7 @@ namespace Microsoft.ML.Probabilistic.Distributions.Automata
                 }
                 else
                 {
-                    var supportEnumerator = transition.ElementDistribution as CanEnumerateSupport<TElement>;
+                    var supportEnumerator = transition.ElementDistribution.Value as CanEnumerateSupport<TElement>;
                     if (supportEnumerator == null)
                     {
                         throw new NotImplementedException("Only point mass element distributions or distributions for which we can enumerate support are currently implemented");
@@ -2831,7 +2818,7 @@ namespace Microsoft.ML.Probabilistic.Distributions.Automata
 
                 if (!transition.IsEpsilon)
                 {
-                    prefix.Push(transition.ElementDistribution);
+                    prefix.Push(transition.ElementDistribution.Value);
                 }
 
                 foreach (var support in this.EnumeratePaths(prefix, visitedStates, Weight.Product(weight, transition.Weight), transition.DestinationStateIndex))

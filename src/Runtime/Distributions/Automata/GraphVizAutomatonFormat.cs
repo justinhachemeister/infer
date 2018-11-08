@@ -45,8 +45,6 @@ namespace Microsoft.ML.Probabilistic.Distributions.Automata
                 graphVizCode.AppendLine();
             }
 
-            var manipulator = DistributionManipulator<TElement, TElementDistribution>.Instance;
-
             // Specify transitions
             foreach (var state in automaton.States)
             {
@@ -55,13 +53,13 @@ namespace Microsoft.ML.Probabilistic.Distributions.Automata
                     var transition = state.GetTransition(i);
                     
                     string transitionLabel;
-                    if (manipulator.IsNull(transition.ElementDistribution))
+                    if (transition.IsEpsilon)
                     {
                         transitionLabel = "eps";
                     }
-                    else if (transition.ElementDistribution.IsPointMass)
+                    else if (transition.ElementDistribution.Value.IsPointMass)
                     {
-                        transitionLabel = EscapeLabel(transition.ElementDistribution.Point.ToString());
+                        transitionLabel = EscapeLabel(transition.ElementDistribution.Value.Point.ToString());
                     }
                     else
                     {
