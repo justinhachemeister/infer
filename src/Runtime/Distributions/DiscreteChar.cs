@@ -146,39 +146,34 @@ namespace Microsoft.ML.Probabilistic.Distributions
         #region Properties matching factory methods
 
         /// <summary>
-        /// Gets a value indicating whether this distribution equals the distribution created by <see cref="Null"/>.
-        /// </summary>
-        public bool IsNull => this.storage == null;
-
-        /// <summary>
         /// Gets a value indicating whether this distribution equals the distribution created by <see cref="Digit"/>.
         /// </summary>
-        public bool IsDigit => this.storage?.IsDigit ?? false;
+        public bool IsDigit => this.storage.IsDigit;
 
         /// <summary>
         /// Gets a value indicating whether this distribution equals the distribution created by <see cref="Lower"/>.
         /// </summary>
-        public bool IsLower => this.storage?.IsLower ?? false;
+        public bool IsLower => this.storage.IsLower;
 
         /// <summary>
         /// Gets a value indicating whether this distribution equals the distribution created by <see cref="Upper"/>.
         /// </summary>
-        public bool IsUpper => this.storage?.IsUpper ?? false;
+        public bool IsUpper => this.storage.IsUpper;
 
         /// <summary>
         /// Gets a value indicating whether this distribution equals the distribution created by <see cref="Letter"/>.
         /// </summary>
-        public bool IsLetter => this.storage?.IsLetter ?? false;
+        public bool IsLetter => this.storage.IsLetter;
 
         /// <summary>
         /// Gets a value indicating whether this distribution equals the distribution created by <see cref="LetterOrDigit"/>.
         /// </summary>
-        public bool IsLetterOrDigit => this.storage?.IsLetterOrDigit ?? false;
+        public bool IsLetterOrDigit => this.storage.IsLetterOrDigit;
 
         /// <summary>
         /// Gets a value indicating whether this distribution equals the distribution created by <see cref="WordChar"/>.
         /// </summary>
-        public bool IsWordChar => this.storage?.IsWordChar ?? false;
+        public bool IsWordChar => this.storage.IsWordChar;
 
         #endregion
 
@@ -243,18 +238,6 @@ namespace Microsoft.ML.Probabilistic.Distributions
             builder.SortAndCheckRanges();
             return new DiscreteChar(builder.GetResult());
         }
-
-        /// <summary>
-        /// Creates an unitialized distribution which can't be used until it is assigned.
-        /// </summary>
-        /// <remarks>
-        /// This constructor is needed to make quoting operation work with default values of DefaultChar.
-        /// Otherwise quoting crashes when trying to call Is* getters to find a suitable constructor.
-        /// Because calling any methods on DiscreteChar that was not initialized explicitle is not allowed.
-        /// </remarks>
-        /// <returns>The created distribution.</returns>
-        [Construction(UseWhen = "IsNull")]
-        private static DiscreteChar Null() => new DiscreteChar();
 
         /// <summary>
         /// Creates a uniform distribution over characters.

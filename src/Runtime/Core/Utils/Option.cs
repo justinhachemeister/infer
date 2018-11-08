@@ -6,6 +6,8 @@ namespace Microsoft.ML.Probabilistic.Utilities
 {
     using System;
 
+    using Microsoft.ML.Probabilistic.Serialization;
+
     /// <summary>
     /// A version of <see cref="Nullable{T}"/> that can hold both reference and value types.
     /// </summary>
@@ -13,16 +15,22 @@ namespace Microsoft.ML.Probabilistic.Utilities
     {
         private readonly T value;
 
+        [Construction("Value")]
         public Option(T value)
         {
             this.value = value;
             this.HasValue = value != null;
         }
 
+        [Construction(UseWhen = "IsEmpty")]
+        static public Option<T> Empty() => new Option<T>();
+
         /// <summary>
         /// Gets a value indicating whether this Option holds a value
         /// </summary>
         public bool HasValue { get; }
+
+        public bool IsEmpty => !HasValue;
 
         /// <summary>
         /// Gets the value of 
